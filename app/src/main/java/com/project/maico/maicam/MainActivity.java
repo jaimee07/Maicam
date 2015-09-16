@@ -1,6 +1,8 @@
 package com.project.maico.maicam;
 
+
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -41,10 +43,17 @@ public class MainActivity extends AppCompatActivity {
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        //TabsPagerAdapter tabsPagerAdapter = new TabsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
+        //include tab layout
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         mViewPager = (ViewPager) findViewById(R.id.pager);
+
         mViewPager.setAdapter(mSectionsPagerAdapter);
+        //wire up with view pager
+        tabLayout.setupWithViewPager(mViewPager);
 
     }
 
@@ -86,7 +95,18 @@ public class MainActivity extends AppCompatActivity {
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            // == return PlaceholderFragment.newInstance(position + 1);
+
+            switch(position){
+                case 0:
+                    return new GalleryFragment();
+                case 1:
+                    return new CameraFragment();
+                case 2:
+                    return new AccountFragment();
+            }
+            return null;
+
         }
 
         @Override
@@ -140,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-            //
+            //added text to each page
             TextView txt = (TextView) rootView.findViewById(R.id.section_label);
             int page = getArguments().getInt(ARG_SECTION_NUMBER, -1);
             txt.setText(String.format("Page %d", page));
@@ -149,5 +169,7 @@ public class MainActivity extends AppCompatActivity {
             return rootView;
         }
     }
+
+
 
 }
