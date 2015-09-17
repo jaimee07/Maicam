@@ -39,22 +39,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-        //TabsPagerAdapter tabsPagerAdapter = new TabsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
         //include tab layout
-
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         mViewPager = (ViewPager) findViewById(R.id.pager);
-
         mViewPager.setAdapter(mSectionsPagerAdapter);
+
         //wire up with view pager
         tabLayout.setupWithViewPager(mViewPager);
-
     }
 
 
@@ -101,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
                 case 0:
                     return new GalleryFragment();
                 case 1:
-                    return new CameraFragment();
+                    return new Fragment();//CameraFragment();
                 case 2:
                     return new AccountFragment();
             }
@@ -131,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * This was replaced by the 3 class fragments
      * A placeholder fragment containing a simple view.
      */
     public static class PlaceholderFragment extends Fragment {

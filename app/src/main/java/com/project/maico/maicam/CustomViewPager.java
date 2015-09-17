@@ -7,9 +7,11 @@ import android.view.MotionEvent;
 
 /**
  * Created by Clover on 9/15/2015.
+ *
+ * custom viewpager: swiping disabled
  */
 
-//custom viewpager: swiping disabled
+//
 public class CustomViewPager extends ViewPager{
 
     public CustomViewPager(Context context){
@@ -27,6 +29,8 @@ public class CustomViewPager extends ViewPager{
 
     @Override
     public boolean onTouchEvent(MotionEvent ev){
-        return false;
+        return false; //swiping disabled
     }
+
+
 }
