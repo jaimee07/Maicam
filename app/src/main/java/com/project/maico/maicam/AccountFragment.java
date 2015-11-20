@@ -2,6 +2,12 @@ package com.project.maico.maicam;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
 import android.os.Bundle;
@@ -16,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import java.io.File;
@@ -39,8 +46,10 @@ public class AccountFragment extends Fragment {
     private static final int PORTRAIT_90 = 90;
 
     private static OrientationEventListener mOrientationEventListener;
-    private static int mImageOrientation = 0;
+    private static int mImageOrientation = 90;
+    private static String orient = "portrait";
 
+    RelativeLayout sensorLayout;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -54,6 +63,11 @@ public class AccountFragment extends Fragment {
         mPreview = new CameraPreview(getActivity(), mCamera);
         FrameLayout preview = (FrameLayout) view.findViewById(R.id.camera_preview);
         preview.addView(mPreview);
+        //Overlay
+        sensorLayout = (RelativeLayout) view.findViewById(R.id.sensor_data_layout);
+        sensorLayout.bringToFront();
+
+        sensorLayout.setDrawingCacheEnabled(true);
 
         //add listener
         Button captureButton = (Button) view.findViewById(R.id.button_capture);
@@ -67,11 +81,13 @@ public class AccountFragment extends Fragment {
                 mCamera.setParameters(param);
                 Log.d(LOG_TAG, "parameters are set");
 
+                //build drawing cache
+                sensorLayout.buildDrawingCache();
+
                 //get image from camera
                 mCamera.takePicture(null, null, mPicture);
             }
         });
-
 
 
 
@@ -89,9 +105,8 @@ public class AccountFragment extends Fragment {
         mOrientationEventListener = new OrientationEventListener(getActivity(), SensorManager.SENSOR_DELAY_NORMAL) {
             @Override
             public void onOrientationChanged(int orientation) {
-
-                int degrees = 90;
-                String orient = "portrait";
+                String lastOrient = orient;
+                /*
                 if(orientation >= 45 && orientation<135){
                     degrees = 180;
                     orient = "landscape";
@@ -101,8 +116,44 @@ public class AccountFragment extends Fragment {
                 }else if(orientation >= 225 && orientation<315){
                     degrees = 0;
                     orient = "landscape";
+                }*/
+                if(Math.round(orientation)==90){
+                    mImageOrientation = 180;
+                    orient = "landscape";
+                }else if(Math.round(orientation)==180){
+                    mImageOrientation = 270;
+                    orient = "portrait";
+                }else if(Math.round(orientation)==270){
+                    mImageOrientation = 0;
+                    orient = "landscape";
+                }else if(Math.round(orientation)==0){
+                    mImageOrientation = 90;
+                    orient = "portrait";
                 }
-                mImageOrientation = degrees;
+
+                if(lastOrient!=orient){
+                    RelativeLayout relLayout = (RelativeLayout) getView().findViewById(R.id.sensor_data_layout);
+                    int w = relLayout.getWidth();
+                    int h = relLayout.getHeight();
+
+
+                    if(orient=="landscape"){
+                        relLayout.setRotation(90.0f);
+                        relLayout.setTranslationX((w-h) / 2);
+                        relLayout.setTranslationY((h-w) / 2);
+                    }else{
+                        relLayout.setRotation(0f);
+                        relLayout.setTranslationX(0f);
+                        relLayout.setTranslationY(0f);
+                    }
+
+
+                    ViewGroup.LayoutParams lp = relLayout.getLayoutParams();
+                    lp.height = w;
+                    lp.width = h;
+                    relLayout.requestLayout();
+
+                }
 
         }};
 
@@ -221,9 +272,21 @@ public class AccountFragment extends Fragment {
     private Camera.PictureCallback mPicture = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-            int orientation = setCameraDisplayOrientation(getActivity(), 0);
 
+            //Create bitmap from byte[] data
+            Bitmap bitmapRaw = BitmapFactory.decodeByteArray(data, 0, data.length);
+            //Bitmap bitmapLayout = Bitmap.createBitmap(preview.getDrawingCache(),0,0, bitmapRaw.getWidth(), bitmapRaw.getHeight());
+            //preview.destroyDrawingcache
 
+            //bitmapLayout scaled
+            Bitmap bitmapLayout = Bitmap.createScaledBitmap(sensorLayout.getDrawingCache(), bitmapRaw.getWidth(), bitmapRaw.getHeight(), true);
+
+            //Bitmap bitmap = addImageInfo(rawBitmap);
+            Bitmap bitmap =  Bitmap.createBitmap(bitmapRaw.getWidth(), bitmapRaw.getHeight(),
+                    bitmapRaw.getConfig());
+            Canvas mCanvas = new Canvas(bitmap);
+            mCanvas.drawBitmap(bitmapRaw,0,0,new Paint());
+            mCanvas.drawBitmap(bitmapLayout,0,0,new Paint());
 
             File pictureFile =  getOutputMediaFile(MEDIA_TYPE_IMAGE);
             if(pictureFile == null){
@@ -233,7 +296,8 @@ public class AccountFragment extends Fragment {
             try{
                 FileOutputStream fos = new FileOutputStream(pictureFile);
                 //drawing of image into file
-                fos.write(data);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+//                fos.write(data);
                 fos.close();
             } catch (FileNotFoundException e) {
                 Log.d(LOG_TAG, "File not found: " + e.getMessage());
@@ -245,6 +309,35 @@ public class AccountFragment extends Fragment {
         }
 
     };
+
+    public Bitmap addImageInfo(Bitmap mBitmap){
+        Bitmap result = Bitmap.createBitmap(mBitmap.getWidth(), mBitmap.getHeight(),
+                mBitmap.getConfig());
+        Canvas mCanvas = new Canvas(result);
+        mCanvas.drawBitmap(mBitmap, 0, 0, null);
+
+        //String latitudeLongitude = R.string.latitudeLongitude;
+        String latitudeLongitude = "14*32\'6\"N, 121*2\'25\"E";
+        String altitude = "Altitude: 262ft";
+        String timeOverlay = "3:56pm";
+        String dateOverlay = "11/29/2015";
+
+        //copypaste
+        Paint paintText = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paintText.setColor(Color.WHITE);
+        paintText.setTextSize(50);
+        paintText.setStyle(Paint.Style.FILL);
+        paintText.setShadowLayer(10f, 10f, 10f, Color.BLACK);
+        //set position
+        paintText.setTextAlign(Paint.Align.CENTER);
+        Rect rectText = new Rect();
+        paintText.getTextBounds(latitudeLongitude, 0, latitudeLongitude.length(), rectText);
+        //end copypaste
+
+        mCanvas.drawText(latitudeLongitude, mCanvas.getWidth() / 2, rectText.height(), paintText);
+        Log.d(LOG_TAG, "add info done");
+        return result;
+    }
 
 
 

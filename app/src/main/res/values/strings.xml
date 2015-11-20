@@ -1,4 +1,10 @@
 <resources>
+    <!--Camera Overlay -->
+    <string name="latitudeLongitude">14*32\'6\"N, 121*2\'25\"E </string>
+    <string name="altitude">Altitude: 262ft</string>
+    <string name="timeOverlay">3:56pm</string>
+    <string name="dateOverlay">11/29/2015</string>
+
     <!-- camera -->
     <string name="camera_error">This device doesn\'t support Camera2 API</string>
     <string name="request_permission">This sample needs camera permission.</string>
