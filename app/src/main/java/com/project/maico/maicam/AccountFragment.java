@@ -1,7 +1,10 @@
 package com.project.maico.maicam;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -23,6 +26,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -50,6 +54,16 @@ public class AccountFragment extends Fragment {
     private static String orient = "portrait";
 
     RelativeLayout sensorLayout;
+
+    //Date-time change listener
+    private final DateChangeReceiver mDateChangeReceiver = new DateChangeReceiver();
+
+    //Camera Overlay
+    protected TextView mLatitudeLongitudeText;
+    protected TextView mAltitudeText;
+    protected TextView mDateText;
+    protected TextView mTimeText;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -63,11 +77,21 @@ public class AccountFragment extends Fragment {
         mPreview = new CameraPreview(getActivity(), mCamera);
         FrameLayout preview = (FrameLayout) view.findViewById(R.id.camera_preview);
         preview.addView(mPreview);
-        //Overlay
+
+        //initialize Camera Overlay
+        mLatitudeLongitudeText = (TextView) view.findViewById((R.id.latitudeLongitudeText));
+        mAltitudeText = (TextView) view.findViewById(R.id.altitudeText);
+        mDateText= (TextView) view.findViewById(R.id.dateText);
+        mTimeText = (TextView) view.findViewById(R.id.timeText);
+
+
+        mDateText.setText(String.format(new SimpleDateFormat("MM/dd/yyyy").format(new Date())));
+        mTimeText.setText(String.format(new SimpleDateFormat("h:mm aa").format(new Date())));
+
         sensorLayout = (RelativeLayout) view.findViewById(R.id.sensor_data_layout);
         sensorLayout.bringToFront();
-
         sensorLayout.setDrawingCacheEnabled(true);
+
 
         //add listener
         Button captureButton = (Button) view.findViewById(R.id.button_capture);
@@ -340,31 +364,31 @@ public class AccountFragment extends Fragment {
     }
 
 
-
-
-
-
-
-
     @Override
     public void onPause(){
         super.onPause();
+
         //releaseMediaRecorder
         releaseCamera();
-        Log.d(LOG_TAG, "Camera is released");
+
+        //unregister receiver
+        try {
+            getActivity().unregisterReceiver(mDateChangeReceiver);
+        }catch(IllegalArgumentException e){
+            if(e.getMessage().contains("Receiver not registered")){
+                //ignore this exception. This is a known bug and is exactly what is desired.
+            }else{
+                throw e;
+            }
+        }
+
     }
 
     @Override
     public void onResume(){
         super.onResume();
-        try {
-            //setCameraDisplayOrientation(getActivity(), 0, mCamera);
-//            mCamera.setPreviewDisplay(mHolder);
-//            mCamera.startPreview();
-            Log.d(LOG_TAG, "Onresume" );
-        } catch (Exception e) {
-            Log.d(LOG_TAG, "On Resume error " + e.getMessage());
-        }
+        getActivity().registerReceiver(mDateChangeReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
+
     }
 
     /**
@@ -452,11 +476,20 @@ public class AccountFragment extends Fragment {
         return mediaFile;
     }
 
+    public class DateChangeReceiver extends BroadcastReceiver {
+        private final String LOG_TAG = DateChangeReceiver.class.getSimpleName();
 
-
-
-
-
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //To do when time changes by a minute
+            String time = String.format(new SimpleDateFormat("h:mm aa").format(new Date()));
+            
+            mTimeText.setText(time);
+            if(time.equals("12:00 AM")){
+                mDateText.setText(String.format(new SimpleDateFormat("MM/dd/yyyy").format(new Date())));
+            }
+        }
+    }
 
 
 }
