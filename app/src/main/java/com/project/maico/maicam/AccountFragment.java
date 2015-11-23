@@ -483,7 +483,7 @@ public class AccountFragment extends Fragment {
         public void onReceive(Context context, Intent intent) {
             //To do when time changes by a minute
             String time = String.format(new SimpleDateFormat("h:mm aa").format(new Date()));
-            
+
             mTimeText.setText(time);
             if(time.equals("12:00 AM")){
                 mDateText.setText(String.format(new SimpleDateFormat("MM/dd/yyyy").format(new Date())));
