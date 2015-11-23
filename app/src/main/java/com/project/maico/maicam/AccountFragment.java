@@ -488,6 +488,8 @@ public class AccountFragment extends Fragment {
             if(time.equals("12:00 AM")){
                 mDateText.setText(String.format(new SimpleDateFormat("MM/dd/yyyy").format(new Date())));
             }
+
+            //how to upload in my repo
         }
     }
 
