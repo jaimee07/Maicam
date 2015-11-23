@@ -23,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -49,7 +50,14 @@ public class AccountFragment extends Fragment {
     private static int mImageOrientation = 90;
     private static String orient = "portrait";
 
-    RelativeLayout sensorLayout;
+    private static BasicLocation basicLocation;
+
+    private static RelativeLayout sensorLayout;
+    protected TextView mLatitudeLongitudeText;
+    protected TextView mAltitudeText;
+    protected TextView mDateText;
+    protected TextView mTimeText;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -61,12 +69,29 @@ public class AccountFragment extends Fragment {
 
         //Create preview view
         mPreview = new CameraPreview(getActivity(), mCamera);
+
+        //Location overlay
+        basicLocation = new BasicLocation(getActivity());
+
+        mLatitudeLongitudeText = (TextView) view.findViewById(R.id.latitudeLongitudeText);
+        mAltitudeText = (TextView) view.findViewById(R.id.altitudeText);
+        mDateText= (TextView) view.findViewById(R.id.dateText);
+        mTimeText= (TextView) view.findViewById(R.id.timeText);
+
+        if(basicLocation.mLastLocation!=null) {
+            mLatitudeLongitudeText.setText(String.format("%f, %f",
+                    basicLocation.mLastLocation.getLatitude(),basicLocation.mLastLocation.getLongitude()));
+            mAltitudeText.setText(String.format("%s, %f", "Altitude:", basicLocation.mLastLocation.getAltitude()));
+            mTimeText.setText(String.format("%s", new SimpleDateFormat("hh:mm aa").format(new Date())));
+            mDateText.setText(String.format("%s", new SimpleDateFormat("MM/dd/yyyy").format(new Date())));
+        }else{
+            Toast.makeText(getActivity(),"No location set", Toast.LENGTH_SHORT).show();
+        }
         FrameLayout preview = (FrameLayout) view.findViewById(R.id.camera_preview);
         preview.addView(mPreview);
-        //Overlay
+
         sensorLayout = (RelativeLayout) view.findViewById(R.id.sensor_data_layout);
         sensorLayout.bringToFront();
-
         sensorLayout.setDrawingCacheEnabled(true);
 
         //add listener
@@ -169,6 +194,21 @@ public class AccountFragment extends Fragment {
 
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        basicLocation.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        basicLocation.onStop();
+    }
+
+    public static void refreshLocation(){
+
+    }
 
     /**
      * Access primary camera

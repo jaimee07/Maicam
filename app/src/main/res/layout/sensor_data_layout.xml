@@ -11,24 +11,26 @@
     >
 
     <TextView
+        android:id="@+id/latitudeLongitudeText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:text="@string/latitudeLongitude"
-        android:id="@+id/altitude"
         android:paddingBottom="8dp"
         android:textColor="@color/white"/>
 
     <TextView
+        android:id="@+id/altitudeText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/altitude"
+        android:layout_below="@id/latitudeLongitudeText"
         android:layout_centerHorizontal="true"
         android:text="@string/altitude"
         android:textColor="@color/white"/>
 
     <ImageView
+        android:id="@+id/qrcodeImage"
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:src="@drawable/image_placeholder"
@@ -36,18 +38,19 @@
         />
 
     <TextView
+        android:id="@+id/dateText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/dateOverlay"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:id="@+id/dateOverlay"
         android:textColor="@color/white"/>
 
     <TextView
+        android:id="@+id/timeText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@id/dateOverlay"
+        android:layout_above="@id/dateText"
         android:layout_alignParentRight="true"
         android:text="@string/timeOverlay"
         android:textColor="@color/white"/>
