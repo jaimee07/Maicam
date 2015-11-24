@@ -13,6 +13,9 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -47,13 +50,13 @@ public class AccountFragment extends Fragment {
     private static final int MEDIA_TYPE_IMAGE = 1;
     private static final int MEDIA_TYPE_VIDEO = 2;
 
+    //Orientation
     private static final int PORTRAIT_90 = 90;
-
     private static OrientationEventListener mOrientationEventListener;
     private static int mImageOrientation = 90;
     private static String orient = "portrait";
 
-    RelativeLayout sensorLayout;
+    private static RelativeLayout sensorLayout;
 
     //Date-time change listener
     private final DateChangeReceiver mDateChangeReceiver = new DateChangeReceiver();
@@ -63,6 +66,43 @@ public class AccountFragment extends Fragment {
     protected TextView mAltitudeText;
     protected TextView mDateText;
     protected TextView mTimeText;
+
+    //Location listener
+    private static final long LOCATION_MINTIME = 2000;
+    private static final float LOCATION_MINDISTANCE = 10;
+
+    Location currentLocation;
+    private static double longitude;
+    private static double latitude;
+    private static double altitude;
+
+    private final LocationListener locationListener = new LocationListener(){
+
+        @Override
+        public void onLocationChanged(Location location) {
+            Toast.makeText(getActivity(), "Location changed", Toast.LENGTH_SHORT).show();
+            //mLatitudeLongitudeText.setText(String.format("%f, %f", location.getLatitude(), location.getLongitude()));
+            mAltitudeText.setText(String.format("Altitude: %f m", location.getAltitude()));
+
+            mLatitudeLongitudeText.setText(Utility.convertToDMS(location.getLatitude(), location.getLongitude()));
+
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+    };
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -78,20 +118,31 @@ public class AccountFragment extends Fragment {
         FrameLayout preview = (FrameLayout) view.findViewById(R.id.camera_preview);
         preview.addView(mPreview);
 
-        //initialize Camera Overlay
+        //Camera Overlay TextViews
         mLatitudeLongitudeText = (TextView) view.findViewById((R.id.latitudeLongitudeText));
         mAltitudeText = (TextView) view.findViewById(R.id.altitudeText);
         mDateText= (TextView) view.findViewById(R.id.dateText);
         mTimeText = (TextView) view.findViewById(R.id.timeText);
 
-
+        //initialize Camera Overlay
         mDateText.setText(String.format(new SimpleDateFormat("MM/dd/yyyy").format(new Date())));
         mTimeText.setText(String.format(new SimpleDateFormat("h:mm aa").format(new Date())));
+
+        //Setup location manager
+        LocationManager lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if(location!=null){
+            Log.d(LOG_TAG, ""+location.getLatitude());
+            mLatitudeLongitudeText.setText(Utility.convertToDMS(location.getLatitude(), location.getLongitude()));
+            mAltitudeText.setText(String.format("Altitude: %.2f", location.getAltitude()));
+        }else{
+            Toast.makeText(getActivity(),"No location detected. Make sure location is enabled on the device.",Toast.LENGTH_LONG).show();
+        }
+        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_MINTIME, LOCATION_MINDISTANCE, locationListener);
 
         sensorLayout = (RelativeLayout) view.findViewById(R.id.sensor_data_layout);
         sensorLayout.bringToFront();
         sensorLayout.setDrawingCacheEnabled(true);
-
 
         //add listener
         Button captureButton = (Button) view.findViewById(R.id.button_capture);
