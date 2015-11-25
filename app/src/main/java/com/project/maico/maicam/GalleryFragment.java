@@ -2,6 +2,7 @@ package com.project.maico.maicam;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
@@ -147,11 +148,9 @@ public class GalleryFragment extends Fragment implements AdapterView.OnItemClick
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        /*final Intent intent = new Intent(getActivity(), GalleryDetail.class);
-        intent.putExtra(GalleryDetail.EXTRA_IMAGE, position);
+        final Intent intent = new Intent(getActivity(), GalleryDetailActivity.class);
+        intent.putExtra (GalleryDetailActivityFragment.IMAGE_DATA_EXTRA, files[position].getAbsolutePath());
         startActivity(intent);
-        */
-        Log.d(LOG_TAG, "OnItemClick" + position);
     }
 
     /**
@@ -202,7 +201,7 @@ public class GalleryFragment extends Fragment implements AdapterView.OnItemClick
                 imageView.setLayoutParams(mImageViewLayoutParams);
             }
             Log.d(LOG_TAG,"get view for postion: " + position);
-            loadBitmap(files[position], imageView, position);
+            loadBitmap(files[position], imageView);
             return imageView;
         }
 
@@ -229,7 +228,7 @@ public class GalleryFragment extends Fragment implements AdapterView.OnItemClick
      * @param file
      * @param imageView
      */
-    public void loadBitmap(File file, ImageView imageView, int position){
+    public void loadBitmap(File file, ImageView imageView){
         final String imageKey = file.getAbsolutePath();
         final Bitmap bitmap = getBitmapFromMemCache(imageKey);
 
