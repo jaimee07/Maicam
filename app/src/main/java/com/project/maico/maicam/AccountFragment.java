@@ -1,6 +1,5 @@
 package com.project.maico.maicam;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -8,9 +7,7 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
 import android.location.Location;
@@ -21,7 +18,6 @@ import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.OrientationEventListener;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -49,6 +45,10 @@ public class AccountFragment extends Fragment {
 
     private static final int MEDIA_TYPE_IMAGE = 1;
     private static final int MEDIA_TYPE_VIDEO = 2;
+
+    //Saving images
+    private static final Bitmap.CompressFormat DEFAULT_COMPRESS_FORMAT = Bitmap.CompressFormat.JPEG;
+    private static final int DEFAULT_COMPRESS_QUALITY = 70;
 
     //Orientation
     private static final int PORTRAIT_90 = 90;
@@ -173,10 +173,7 @@ public class AccountFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        /**
-         * Detect orientation via Sensor
-         */
-
+        //Detect orientation via Sensor
         mOrientationEventListener = new OrientationEventListener(getActivity(), SensorManager.SENSOR_DELAY_NORMAL) {
             @Override
             public void onOrientationChanged(int orientation) {
@@ -192,6 +189,7 @@ public class AccountFragment extends Fragment {
                     degrees = 0;
                     orient = "landscape";
                 }*/
+                //TODO: Adjust values for faster detection, +-range will do
                 if(Math.round(orientation)==90){
                     mImageOrientation = 180;
                     orient = "landscape";
@@ -232,7 +230,6 @@ public class AccountFragment extends Fragment {
 
         }};
 
-
         if(mOrientationEventListener.canDetectOrientation()){
             Log.d(LOG_TAG, "can detect orientation");
             mOrientationEventListener.enable();
@@ -240,8 +237,6 @@ public class AccountFragment extends Fragment {
             Log.d(LOG_TAG,"cannot detect orientation");
             mOrientationEventListener.disable();
         }
-
-
     }
 
 
@@ -344,6 +339,7 @@ public class AccountFragment extends Fragment {
     /**
      * Setup listeners for Capture
      */
+    // TODO: 11/24/2015 Create asyncTask to process file saving
     private Camera.PictureCallback mPicture = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
@@ -356,7 +352,6 @@ public class AccountFragment extends Fragment {
             //bitmapLayout scaled
             Bitmap bitmapLayout = Bitmap.createScaledBitmap(sensorLayout.getDrawingCache(), bitmapRaw.getWidth(), bitmapRaw.getHeight(), true);
 
-            //Bitmap bitmap = addImageInfo(rawBitmap);
             Bitmap bitmap =  Bitmap.createBitmap(bitmapRaw.getWidth(), bitmapRaw.getHeight(),
                     bitmapRaw.getConfig());
             Canvas mCanvas = new Canvas(bitmap);
@@ -371,7 +366,7 @@ public class AccountFragment extends Fragment {
             try{
                 FileOutputStream fos = new FileOutputStream(pictureFile);
                 //drawing of image into file
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                bitmap.compress(DEFAULT_COMPRESS_FORMAT, DEFAULT_COMPRESS_QUALITY, fos);
 //                fos.write(data);
                 fos.close();
             } catch (FileNotFoundException e) {
@@ -384,36 +379,6 @@ public class AccountFragment extends Fragment {
         }
 
     };
-
-    public Bitmap addImageInfo(Bitmap mBitmap){
-        Bitmap result = Bitmap.createBitmap(mBitmap.getWidth(), mBitmap.getHeight(),
-                mBitmap.getConfig());
-        Canvas mCanvas = new Canvas(result);
-        mCanvas.drawBitmap(mBitmap, 0, 0, null);
-
-        //String latitudeLongitude = R.string.latitudeLongitude;
-        String latitudeLongitude = "14*32\'6\"N, 121*2\'25\"E";
-        String altitude = "Altitude: 262ft";
-        String timeOverlay = "3:56pm";
-        String dateOverlay = "11/29/2015";
-
-        //copypaste
-        Paint paintText = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paintText.setColor(Color.WHITE);
-        paintText.setTextSize(50);
-        paintText.setStyle(Paint.Style.FILL);
-        paintText.setShadowLayer(10f, 10f, 10f, Color.BLACK);
-        //set position
-        paintText.setTextAlign(Paint.Align.CENTER);
-        Rect rectText = new Rect();
-        paintText.getTextBounds(latitudeLongitude, 0, latitudeLongitude.length(), rectText);
-        //end copypaste
-
-        mCanvas.drawText(latitudeLongitude, mCanvas.getWidth() / 2, rectText.height(), paintText);
-        Log.d(LOG_TAG, "add info done");
-        return result;
-    }
-
 
     @Override
     public void onPause(){
@@ -451,35 +416,7 @@ public class AccountFragment extends Fragment {
             mCamera=null;
         }
     }
-    /**
-     * @param activity
-     * @param cameraId
-     * @return default orientation for the correct preview
-     */
-    private int setCameraDisplayOrientation(Activity activity, int cameraId) {
-        android.hardware.Camera.CameraInfo info =
-                new android.hardware.Camera.CameraInfo();
-        android.hardware.Camera.getCameraInfo(cameraId, info);
-        int rotation = activity.getWindowManager().getDefaultDisplay()
-                .getRotation();
-        int degrees = 0;
-        switch (rotation) {
-            case Surface.ROTATION_0: degrees = 0; break;
-            case Surface.ROTATION_90: degrees = 90; break;
-            case Surface.ROTATION_180: degrees = 180; break;
-            case Surface.ROTATION_270: degrees = 270; break;
-        }
-        int result;
-        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-            result = (info.orientation + degrees) % 360;
-            result = (360 - result) % 360;  // compensate the mirror
-        } else {  // back-facing
-            result = (info.orientation - degrees + 360) % 360;
-        }
 
-        return result;
-
-    }
     /**
      * refresh camera after a shot
      */

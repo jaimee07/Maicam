@@ -22,9 +22,15 @@ import android.widget.GridView;
 import android.widget.ImageView;
 
 import com.project.maico.maicam.GalleryUtil.AsyncDrawable;
+import com.project.maico.maicam.GalleryUtil.DiskLruCache;
 import com.project.maico.maicam.GalleryUtil.ImageFetcher;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 
 public class GalleryFragment extends Fragment implements AdapterView.OnItemClickListener{
@@ -33,15 +39,27 @@ public class GalleryFragment extends Fragment implements AdapterView.OnItemClick
     private ImageAdapter mAdapter;
     private int mImageThumbSize = 0;
     private int mImageThumbSpacing = 0;
-
     public static int mReqHeight = 0;
     public static int mReqWidth = 0;
 
     private static File[] files;
     private static Bitmap mPlaceholderImage;
 
+    //memory caching
     private LruCache<String, Bitmap> mMemoryCache;
 
+    //disk caching
+    private DiskLruCache mDiskLruCache;
+    private final Object mDiskCacheLock = new Object();
+    private boolean mDiskCacheStarting = true;
+
+    private static final int DISK_CACHE_SIZE = 1024*1024*10; //10MB
+    private static final String DISK_CACHE_SUBDIR = "thumbnails";
+
+    //Writing images to disk
+    private static final int DISK_CACHE_INDEX = 0;
+    private static final Bitmap.CompressFormat DEFAULT_COMPRESS_FORMAT = Bitmap.CompressFormat.JPEG;
+    private static final int DEFAULT_COMPRESS_QUALITY = 70;
 
     //required empty constructor
     public GalleryFragment(){}
@@ -61,7 +79,6 @@ public class GalleryFragment extends Fragment implements AdapterView.OnItemClick
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory()/1024);
         //use 1/8th of the available memory for our cache
         final int cacheSize = maxMemory/8;
-
         mMemoryCache = new LruCache<String, Bitmap>(cacheSize){
             @Override
             protected int sizeOf(String key, Bitmap bitmap) {
@@ -71,10 +88,14 @@ public class GalleryFragment extends Fragment implements AdapterView.OnItemClick
             }
         };
 
+        //initialize disk cache n background thread
+        File cacheDir = ImageFetcher.getDiskCacheDir(getActivity(), DISK_CACHE_SUBDIR);
+        new InitDiskCacheTask().execute(cacheDir);
+
+        //initialize values
         mImageThumbSize = getResources().getDimensionPixelSize(R.dimen.image_thumbnail_size);
         mImageThumbSpacing = getResources().getDimensionPixelSize(R.dimen.image_thumbnail_spacing);
         mPlaceholderImage = BitmapFactory.decodeResource(getResources(), R.drawable.image_placeholder);
-
     }
 
     @Nullable
@@ -288,7 +309,11 @@ public class GalleryFragment extends Fragment implements AdapterView.OnItemClick
         @Override
         protected Bitmap doInBackground(String ... params) {
             data = params[0];
-            final Bitmap bitmap = ImageFetcher.decodeSampledBitmapFromFile(data, mReqWidth, mReqHeight);
+            Bitmap bitmap = getBitmapFromDiskCache(data);
+
+            if(bitmap == null) { //not found in disk cache
+                bitmap = ImageFetcher.decodeSampledBitmapFromFile(data, mReqWidth, mReqHeight);
+            }
 
             return bitmap;
         }
@@ -303,7 +328,8 @@ public class GalleryFragment extends Fragment implements AdapterView.OnItemClick
                 final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
                 if(this==bitmapWorkerTask && imageView!=null){
                     imageView.setImageBitmap(bitmap);
-                    addBitmapToMemoryCache(data, bitmap);
+                    //add bitmap to cache
+                    addBitmapToCache(data, bitmap);
                     Log.d(LOG_TAG,"setbitmap done");
                     Log.d(LOG_TAG,"-------------------------");
                 }
@@ -316,14 +342,100 @@ public class GalleryFragment extends Fragment implements AdapterView.OnItemClick
 
     /**
      * Adds bitmap to memory cache
-     * @param key
+     * @param data
      * @param bitmap
      */
-    public void addBitmapToMemoryCache(String key, Bitmap bitmap){
-        if(getBitmapFromMemCache(key) == null){
-            mMemoryCache.put(key, bitmap);
+    public void addBitmapToCache(String data, Bitmap bitmap){
+        //Add to memory cache
+        if(getBitmapFromMemCache(data) == null){
+            mMemoryCache.put(data, bitmap);
+        }
+        //Add to disk cache
+        synchronized (mDiskCacheLock) {
+            // Add to disk cache
+            if (mDiskLruCache != null) {
+                final String key = ImageFetcher.hashKeyForDisk(data);
+                OutputStream out = null;
+                try {
+                    DiskLruCache.Snapshot snapshot = mDiskLruCache.get(key);
+                    if (snapshot == null) {
+                        final DiskLruCache.Editor editor = mDiskLruCache.edit(key);
+                        if (editor != null) {
+                            out = editor.newOutputStream(DISK_CACHE_INDEX);
+                            bitmap.compress(
+                                    DEFAULT_COMPRESS_FORMAT, DEFAULT_COMPRESS_QUALITY, out);
+                            editor.commit();
+                            out.close();
+                        }
+                    } else {
+                        snapshot.getInputStream(DISK_CACHE_INDEX).close();
+                    }
+                } catch (final IOException e) {
+                    Log.e(LOG_TAG, "addBitmapToCache - " + e);
+                } catch (Exception e) {
+                    Log.e(LOG_TAG, "addBitmapToCache - " + e);
+                } finally {
+                    try {
+                        if (out != null) {
+                            out.close();
+                        }
+                    } catch (IOException e) {}
+                }
+            }
         }
     }
+
+    /**
+     * Get from disk cache.
+     *
+     * @param data Unique identifier for which item to get
+     * @return The bitmap if found in cache, null otherwise
+     */
+    public Bitmap getBitmapFromDiskCache(String data) {
+        //BEGIN_INCLUDE(get_bitmap_from_disk_cache)
+        final String key = ImageFetcher.hashKeyForDisk(data);
+        Bitmap bitmap = null;
+
+        synchronized (mDiskCacheLock) {
+            //wait while disk cache is started from background
+            while (mDiskCacheStarting) {
+                try {
+                    mDiskCacheLock.wait();
+                } catch (InterruptedException e) {}
+            }
+            if (mDiskLruCache != null) {
+                InputStream inputStream = null;
+                try {
+                    final DiskLruCache.Snapshot snapshot = mDiskLruCache.get(key);
+                    if (snapshot != null) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(LOG_TAG, "Disk cache hit");
+                        }
+                        inputStream = snapshot.getInputStream(DISK_CACHE_INDEX);
+                        if (inputStream != null) {
+                            FileDescriptor fd = ((FileInputStream) inputStream).getFD();
+
+                            // Decode bitmap, but we don't want to sample so give
+                            // MAX_VALUE as the target dimensions
+                            bitmap = ImageFetcher.decodeSampledBitmapFromDescriptor(
+                                    fd, Integer.MAX_VALUE, Integer.MAX_VALUE);
+                        }
+                    }
+                } catch (final IOException e) {
+                    Log.e(LOG_TAG, "getBitmapFromDiskCache - " + e);
+                } finally {
+                    try {
+                        if (inputStream != null) {
+                            inputStream.close();
+                        }
+                    } catch (IOException e) {}
+                }
+            }
+            return bitmap;
+        }
+        //END_INCLUDE(get_bitmap_from_disk_cache)
+    }
+
 
     /**
      * Gets bitmap in memory cache using key value
@@ -334,6 +446,22 @@ public class GalleryFragment extends Fragment implements AdapterView.OnItemClick
         return mMemoryCache.get(key);
     }
 
+    class InitDiskCacheTask extends AsyncTask<File, Void, Void>{
+        @Override
+        protected Void doInBackground(File... params){
+            synchronized(mDiskCacheLock){
+                File cacheDir = params[0];
+                try {
+                    mDiskLruCache = DiskLruCache.open(cacheDir, 1, 1,DISK_CACHE_SIZE);
+                    mDiskCacheStarting = false; //finished initialization
+                    mDiskCacheLock.notifyAll(); //wake any waiting thread
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
+    }
 
 
 }
