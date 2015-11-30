@@ -5,6 +5,8 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="DarkAppTheme" parent="AppTheme"></style>
+
     <!-- horizontal line-->
     <style name="Divider">
         <item name="android:layout_width">match_parent</item>

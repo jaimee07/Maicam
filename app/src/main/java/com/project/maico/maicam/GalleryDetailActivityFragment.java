@@ -2,6 +2,7 @@ package com.project.maico.maicam;
 
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -12,6 +13,8 @@ import android.widget.ImageView;
 
 import com.project.maico.maicam.GalleryUtil.ImageFetcher;
 
+import java.lang.ref.WeakReference;
+
 /**
  * A placeholder fragment containing a simple view.
  */
@@ -19,8 +22,7 @@ public class GalleryDetailActivityFragment extends Fragment {
 
     private static final String LOG_TAG = GalleryDetailActivityFragment.class.getSimpleName();
 
-    private static String mFilename;
-    private static ImageView mImageView;
+    private ImageView mImageView;
     private static int reqWidth;
     private static int reqHeight;
 
@@ -72,27 +74,29 @@ public class GalleryDetailActivityFragment extends Fragment {
         final View view = inflater.inflate(R.layout.fragment_gallery_detail, container, false);
 
         mImageView = (ImageView) view.findViewById(R.id.imageView);
-        reqWidth = mImageView.getWidth();
-        reqHeight = mImageView.getHeight();
+        //TODO: set height and width of the image
+//        reqWidth = mImageView.getWidth();
+//        reqHeight = mImageView.getHeight();
 
-        mFilename = getArguments()!=null ? (String) getArguments().get(IMAGE_DATA_EXTRA) : null;
+        String filename = getArguments()!=null ? (String) getArguments().get(IMAGE_DATA_EXTRA) : null;
 
         Log.d(LOG_TAG, "OnCreateView in detail fragment");
         mImageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        BitmapWorkerTask task = new BitmapWorkerTask();
-        Log.d(LOG_TAG, mFilename);
-        task.execute(mFilename);
+//        imageView.setImageResource(R.drawable.image_placeholder);
+        BitmapWorkerTask task = new BitmapWorkerTask(mImageView);
+        Log.d(LOG_TAG, filename);
+        task.execute(filename);
 
         return view;
     }
 
     public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
-        //private final WeakReference<ImageView> imageViewReference;
+        private final WeakReference<ImageView> imageViewReference;
         private String data;
 
-        public BitmapWorkerTask() {
+        public BitmapWorkerTask(ImageView imageView) {
             //use a weak reference to ensure the ImageView can be garbage collected
-            //imageViewReference = new WeakReference<>(imageView);
+            imageViewReference = new WeakReference<>(imageView);
         }
 
         /**
@@ -105,13 +109,23 @@ public class GalleryDetailActivityFragment extends Fragment {
             data = params[0];
             Bitmap bitmap = ImageFetcher.decodeSampledBitmapFromFile(data, 300, 300);
 
+
             return bitmap;
         }
 
         @Override
         protected void onPostExecute(Bitmap bitmap) {
-            mImageView.setImageBitmap(bitmap);
-            Log.d(LOG_TAG, "Image bitmap is set");
+            ImageView imageView = imageViewReference.get();
+            if(imageView != null) {
+                if(bitmap!=null){
+                    imageView.setImageBitmap(bitmap);
+                }else{
+                    imageView.setImageResource(R.drawable.image_placeholder);
+                }
+            }else{
+
+                Log.d(LOG_TAG, "imageView is null");
+            }
 
         }
     }
@@ -127,18 +141,10 @@ public class GalleryDetailActivityFragment extends Fragment {
 
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
+        // Pass clicks on the ImageView to the parent activity to handle
+        if(View.OnClickListener.class.isInstance(getActivity())&& Build.VERSION.SDK_INT>= Build.VERSION_CODES.HONEYCOMB) {
+            mImageView.setOnClickListener((View.OnClickListener)getActivity());
+        }
 
 
     }

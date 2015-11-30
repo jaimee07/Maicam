@@ -149,7 +149,9 @@ public class GalleryFragment extends Fragment implements AdapterView.OnItemClick
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         final Intent intent = new Intent(getActivity(), GalleryDetailActivity.class);
-        intent.putExtra (GalleryDetailActivityFragment.IMAGE_DATA_EXTRA, files[position].getAbsolutePath());
+        intent.putExtra (GalleryDetailActivityFragment.IMAGE_DATA_EXTRA, (int) id);
+
+        //TODO: make scale up animation
         startActivity(intent);
     }
 
