@@ -16,10 +16,10 @@ import java.security.NoSuchAlgorithmException;
 /**
  * Created by Clover on 11/14/2015.
  */
-public class ImageFetcher {
+public class ImageUtil {
     public static Context mContext;
 
-    public ImageFetcher(Context context){
+    public ImageUtil(Context context){
         mContext = context;
     }
 

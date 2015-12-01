@@ -13,16 +13,24 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.project.maico.maicam.GalleryUtil.ImageFetcher;
+import com.project.maico.maicam.GalleryUtil.ImageLoader;
+import com.project.maico.maicam.GalleryUtil.ImageUtil;
 
 import java.io.File;
 
 public class GalleryDetailActivity extends AppCompatActivity implements View.OnClickListener{
     private static final String LOG_TAG = GalleryDetailActivity.class.getSimpleName();
 
-    private static File[] files;
     private ImagePagerAdapter mAdapter;
     private ViewPager mPager;
+    private ImageLoader mImageLoader;
+    private static File[] files;
+
+    //disk caching
+    private static final String DISK_CACHE_SUBDIR = "images";
+
+    //memory caching
+    private static final float CACHE_PERCENTAGE = 0.25f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,8 +38,7 @@ public class GalleryDetailActivity extends AppCompatActivity implements View.OnC
         setContentView(R.layout.gallery_detail_pager);
 
         //get files from maicam
-        files = ImageFetcher.getFilesFromMaicam(this);
-
+        files = ImageUtil.getFilesFromMaicam(this);
         //Fetch screen height and width to use as our max size when loading images
         //as this activity runs full screen
 
@@ -44,7 +51,9 @@ public class GalleryDetailActivity extends AppCompatActivity implements View.OnC
         //Use half of the longest dimension to resize our images
         final int longest = (height > width ? height : width)/2;
 
-        //TODO: Add cache
+        //Set ImageLoader to load and cache our images
+        mImageLoader = new ImageLoader(this, longest, longest, CACHE_PERCENTAGE, DISK_CACHE_SUBDIR, null);
+
 
         //Set up ViewPager and backing adapter
         mAdapter = new ImagePagerAdapter(getSupportFragmentManager(), files.length);
@@ -106,6 +115,13 @@ public class GalleryDetailActivity extends AppCompatActivity implements View.OnC
             getSupportActionBar().hide();
             Log.d(LOG_TAG, "low profile");
         }
+    }
+
+    /**
+     * Called by the ViewPager child fragments to load images via the one ImageLoader
+     */
+    public ImageLoader getImageLoader() {
+        return mImageLoader;
     }
 
     private class ImagePagerAdapter extends FragmentStatePagerAdapter{
