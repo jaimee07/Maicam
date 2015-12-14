@@ -14,6 +14,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -440,7 +441,8 @@ public class AccountFragment extends Fragment {
     private File getOutputMediaFile(int type){
         //File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Maicam");
         //not working in samsung android 4.3
-        File mediaStorageDir = new File(getActivity().getExternalFilesDir(null).getPath());
+        //File mediaStorageDir = new File(getActivity().getExternalFilesDir(null).getPath());
+        File mediaStorageDir = new File(Environment.getExternalStorageDirectory(),"MaicamImages");
         //images persist after app is uninstalled
 
         //create storage directory
@@ -450,6 +452,8 @@ public class AccountFragment extends Fragment {
                 return null;
             }
         }
+
+        Log.d(LOG_TAG, "External Storage Directory: " +  mediaStorageDir.getPath());
 
         //create file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());

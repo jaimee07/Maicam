@@ -116,7 +116,13 @@ public class ImageUtil {
         //String filepath = Environment.getExternalStorageDirectory().getAbsolutePath()+ File.separator + "Pictures/" + "Beautiful Designs UI";
         File[] files = null;
 
-        String filepath = context.getExternalFilesDir(null).getAbsolutePath();
+        //String filepath = context.getExternalFilesDir(null).getAbsolutePath();
+        File mediaStorageDir = new File(Environment.getExternalStorageDirectory(),"MaicamImages");
+        // /storage/emulated/0/MaicamImages
+
+        String filepath = mediaStorageDir.getPath();
+        Log.d("galleryfragment", "External Storage Directory" + filepath );
+
         File currentDir =  new File(filepath);
         if(currentDir.isDirectory()) {
             files = currentDir.listFiles(new FileFilter() {
@@ -127,6 +133,10 @@ public class ImageUtil {
                 }
             });
         }
+
+        if(files == null){
+            files = new File[]{};
+        };
 
         for(File file:files){
             Log.d("gallery fragment","image key: " + file.getAbsolutePath());
