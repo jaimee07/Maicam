@@ -1,11 +1,24 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Base application theme. -->
+    <!--Base application theme -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/maicam_blue</item>
+        <item name="colorPrimaryDark">@color/maicam_dark_blue</item>
     </style>
 
-    <style name="DarkAppTheme" parent="AppTheme"></style>
+    <!--Main Activity Theme
+    <item name="background">@color/maicam_blue</item>
+        <item name="android:background">@color/maicam_blue</item>
+    -->
+    <style name="MaicamTheme" parent="AppTheme">
+        <item name="actionBarStyle">@style/ActionBar.Solid.Maicam.NoTitle</item>
+    </style>
+
+    <style name="ActionBar.Solid.Maicam.NoTitle"
+        parent="@style/Widget.AppCompat.ActionBar">
+        <item name="contentInsetStart">0dp</item>
+        <!--item name="colorPrimary">@color/maicam_blue</item-->
+    </style>
 
     <!-- horizontal line-->
     <style name="Divider">
