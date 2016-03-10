@@ -18,8 +18,8 @@ import com.project.maico.maicam.GalleryUtil.ImageUtil;
 
 import java.io.File;
 
-public class GalleryDetailActivity extends AppCompatActivity implements View.OnClickListener{
-    private static final String LOG_TAG = GalleryDetailActivity.class.getSimpleName();
+public class DetailActivity extends AppCompatActivity implements View.OnClickListener{
+    private static final String LOG_TAG = DetailActivity.class.getSimpleName();
 
     private ImagePagerAdapter mAdapter;
     private ViewPager mPager;
@@ -35,7 +35,7 @@ public class GalleryDetailActivity extends AppCompatActivity implements View.OnC
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.gallery_detail_pager);
+        setContentView(R.layout.detail_pager);
 
         //get files from maicam
         files = ImageUtil.getFilesFromMaicam(this);
@@ -93,7 +93,7 @@ public class GalleryDetailActivity extends AppCompatActivity implements View.OnC
         }
 
         //Set the current item based on the extra passed in to this activity
-        final int extraCurrentItem = getIntent().getIntExtra(GalleryDetailActivityFragment.IMAGE_DATA_EXTRA, -1);
+        final int extraCurrentItem = getIntent().getIntExtra(com.project.maico.maicam.DetailFragment.IMAGE_DATA_EXTRA, -1);
 
         if(extraCurrentItem != -1){
             mPager.setCurrentItem(extraCurrentItem);
@@ -134,7 +134,7 @@ public class GalleryDetailActivity extends AppCompatActivity implements View.OnC
 
         @Override
         public Fragment getItem(int position) {
-            return GalleryDetailActivityFragment.newInstance(files[position].getAbsolutePath());
+            return com.project.maico.maicam.DetailFragment.newInstance(files[position].getAbsolutePath());
         }
 
         @Override

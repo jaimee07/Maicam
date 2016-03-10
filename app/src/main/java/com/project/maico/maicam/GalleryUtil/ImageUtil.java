@@ -12,6 +12,9 @@ import java.io.FileDescriptor;
 import java.io.FileFilter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * Created by Clover on 11/14/2015.
@@ -132,15 +135,37 @@ public class ImageUtil {
                     return allow;
                 }
             });
+
+            for(File file:files){
+                Log.d("imageutil","before sort" + file.lastModified());
+            }
+
+            //sort files based on date created
+            Arrays.sort(files, new Comparator<File>() {
+
+                @Override
+                public int compare(File f1, File f2) {
+                    return Long.valueOf(f1.lastModified()).compareTo(f2.lastModified());
+                }
+            });
+            for(File file:files){
+                Log.d("imageutil","after normal sort" + file.lastModified());
+            }
+
+
+            Arrays.sort(files, Collections.reverseOrder());
+            for(File file:files){
+                Log.d("imageutil","after reverse sort" + file.lastModified());
+            }
+
+
         }
 
         if(files == null){
             files = new File[]{};
         };
 
-        for(File file:files){
-            Log.d("gallery fragment","image key: " + file.getAbsolutePath());
-        }
+
 
         return files;
     }

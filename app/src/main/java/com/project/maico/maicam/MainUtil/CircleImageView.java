@@ -1,4 +1,4 @@
-package com.project.maico.maicam;/*
+package com.project.maico.maicam.MainUtil;/*
  * Copyright 2014 - 2015 Henning Dodenhof
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,8 @@ import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
 import android.util.AttributeSet;
 import android.widget.ImageView;
+
+import com.project.maico.maicam.R;
 
 public class CircleImageView extends ImageView {
 

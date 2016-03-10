@@ -1,6 +1,7 @@
 package com.project.maico.maicam;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -17,6 +18,7 @@ import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import com.project.maico.maicam.GalleryUtil.ImageLoader;
@@ -107,8 +109,8 @@ public class GalleryFragment extends Fragment implements AdapterView.OnItemClick
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        final Intent intent = new Intent(getActivity(), GalleryDetailActivity.class);
-        intent.putExtra (GalleryDetailActivityFragment.IMAGE_DATA_EXTRA, (int) id);
+        final Intent intent = new Intent(getActivity(), DetailActivity.class);
+        intent.putExtra (com.project.maico.maicam.DetailFragment.IMAGE_DATA_EXTRA, (int) id);
 
         //TODO: make scale up animation
         startActivity(intent);
@@ -182,6 +184,20 @@ public class GalleryFragment extends Fragment implements AdapterView.OnItemClick
             mImageViewLayoutParams = new GridView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, mItemHeight);
             notifyDataSetChanged();
         }
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        ImageButton imageButton = (ImageButton) getActivity().findViewById(R.id.galleryButton);
+        imageButton.setImageResource(R.drawable.ic_gallery_active);
+    }
+
+    @Override
+    public void onDetach() {
+        ImageButton imageButton = (ImageButton) getActivity().findViewById(R.id.galleryButton);
+        imageButton.setImageResource(R.drawable.ic_gallery);
+        super.onDetach();
     }
 
 

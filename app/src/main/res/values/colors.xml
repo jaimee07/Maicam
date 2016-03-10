@@ -4,4 +4,5 @@
     <color name="white">#ffffff</color>
     <color name="maicam_blue">#235594</color>
     <color name="maicam_dark_blue">#163763</color>
+    <color name="maicam_light_blue">#93F5F0</color>
 </resources>

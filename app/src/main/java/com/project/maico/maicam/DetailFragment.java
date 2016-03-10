@@ -14,9 +14,9 @@ import com.project.maico.maicam.GalleryUtil.ImageLoader;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class GalleryDetailActivityFragment extends Fragment {
+public class DetailFragment extends Fragment {
 
-    private static final String LOG_TAG = GalleryDetailActivityFragment.class.getSimpleName();
+    private static final String LOG_TAG = DetailFragment.class.getSimpleName();
 
     private ImageLoader mImageLoader;
     private ImageView mImageView;
@@ -28,10 +28,10 @@ public class GalleryDetailActivityFragment extends Fragment {
      * Factory method to generate a new instance of the fragment given an image number
      *
      * @param filename the filename of image  to load
-     * @return A new instance of GalleryDetailActivityFragment with image number extras(?)
+     * @return A new instance of DetailFragment with image number extras(?)
      */
-    public static GalleryDetailActivityFragment newInstance(String filename){
-        final GalleryDetailActivityFragment f = new GalleryDetailActivityFragment();
+    public static DetailFragment newInstance(String filename){
+        final DetailFragment f = new DetailFragment();
 
         final Bundle args = new Bundle();
         args.putString(IMAGE_DATA_EXTRA, filename);
@@ -44,7 +44,7 @@ public class GalleryDetailActivityFragment extends Fragment {
     /**
      * Empty constructor as per the Fragment documentation
      */
-    public GalleryDetailActivityFragment() {
+    public DetailFragment() {
 
     }
 
@@ -68,7 +68,7 @@ public class GalleryDetailActivityFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.fragment_gallery_detail, container, false);
+        final View view = inflater.inflate(R.layout.fragment_detail, container, false);
 
         mImageView = (ImageView) view.findViewById(R.id.imageView);
         //TODO: set height and width of the image
@@ -91,8 +91,8 @@ public class GalleryDetailActivityFragment extends Fragment {
         //Use the parent activity to load the image asynchronously into the ImageView
         //so a single cache can be used over all pages in the ViewPager
 
-        if(GalleryDetailActivity.class.isInstance(getActivity())){
-            mImageLoader = ((GalleryDetailActivity)getActivity()).getImageLoader();
+        if(DetailActivity.class.isInstance(getActivity())){
+            mImageLoader = ((DetailActivity)getActivity()).getImageLoader();
             mImageLoader.loadBitmap(mFileName, mImageView);
         }
 

@@ -13,6 +13,8 @@
         android:id="@+id/imageView"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:contentDescription="@string/imageview_description"/>
+        android:contentDescription="@string/imageview_description"
+        android:layout_gravity="center"/>
+
 
 </FrameLayout>

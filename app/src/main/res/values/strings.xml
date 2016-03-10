@@ -24,8 +24,16 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_camera_page">CameraPage</string>
 
-<!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_gallery_detail">GalleryDetail</string>
     <string name="imageview_description">Image Thumbnail</string>
+    <string name="title_activity_camera">CameraActivity</string>
+
+    <!--Location xml -->
+    <string name="latitudeLabel">Latitude</string>
+    <string name="longitudeLabel">Longitude</string>
+    <string name="latitudeValue">Looking for GPS signal</string>
+    <string name="longitudeValue">Looking for GPS signal</string>
+    <string name="locationLabel">Location:</string>
+    <string name="locationValue">No location found.</string>
 </resources>

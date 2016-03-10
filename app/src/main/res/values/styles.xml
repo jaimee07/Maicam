@@ -4,6 +4,7 @@
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="colorPrimary">@color/maicam_blue</item>
         <item name="colorPrimaryDark">@color/maicam_dark_blue</item>
+        <!--item name="colorButtonNormal">@color/white</item-->
     </style>
 
     <!--Main Activity Theme
@@ -12,6 +13,7 @@
     -->
     <style name="MaicamTheme" parent="AppTheme">
         <item name="actionBarStyle">@style/ActionBar.Solid.Maicam.NoTitle</item>
+
     </style>
 
     <style name="ActionBar.Solid.Maicam.NoTitle"

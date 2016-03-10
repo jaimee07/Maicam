@@ -12,7 +12,7 @@
     <uses-feature android:name="android.hardware.camera2" />
     //picture storage
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -30,8 +30,16 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".GalleryDetailActivity"
+            android:name=".DetailActivity"
             android:label="@string/title_activity_gallery_detail"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.project.maico.maicam.MainActivity" />
+        </activity>
+        <activity
+            android:name=".CameraActivity"
+            android:label="@string/title_activity_camera"
             android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

@@ -1,36 +1,25 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" tools:context="com.project.maico.maicam.CameraFragment">
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_alignParentTop="true"
-        android:id="@+id/tabs_placeholder"
-        />
-
-    <com.project.maico.maicam.AutoFitTextureView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/tabs_placeholder"
-        android:id="@+id/texture_autofit"/>
-
+    android:layout_height="match_parent" tools:context="com.project.maico.maicam.AccountFragment"
+    android:orientation="vertical">
 
     <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:layout_alignParentBottom="true"
-        android:background="@color/dark_gray">
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Picture"
-            android:id="@+id/button_picture"/>
-
-
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/camera_preview"
+        android:layout_weight="1">
+        <include
+            android:id="@+id/sensor_data_layout"
+            layout="@layout/sensor_layout" />
     </FrameLayout>
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button_capture"
+        android:text="Capture"
+        android:layout_gravity="center"/>
 
 
-</RelativeLayout>
+
+</LinearLayout>

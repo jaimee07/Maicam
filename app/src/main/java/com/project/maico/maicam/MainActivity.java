@@ -1,38 +1,24 @@
 package com.project.maico.maicam;
 
 
+import android.content.Context;
+import android.content.Intent;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.design.widget.TabLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.view.LayoutInflater;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.ImageButton;
+import android.widget.Toast;
 
-import java.util.Locale;
-
-public class MainActivity extends AppCompatActivity {
-
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
-    SectionsPagerAdapter mSectionsPagerAdapter;
-
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
-    ViewPager mViewPager;
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+    private final String LOG_TAG = MainActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,19 +32,21 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
 
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        Fragment defaultFragment = new GalleryFragment();
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.add(R.id.main_fragment_container, defaultFragment);
+        ft.commit();
 
-        // Set up the ViewPager with the sections adapter.
-        //include tab layout
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-        mViewPager = (ViewPager) findViewById(R.id.pager);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
-
-        //wire up with view pager
-        tabLayout.setupWithViewPager(mViewPager);
+        FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fabcam);
+        fab.setOnClickListener(this);
+        ImageButton locationButton = (ImageButton) findViewById(R.id.locationButton);
+        locationButton.setOnClickListener(this);
+        ImageButton qrButton = (ImageButton) findViewById(R.id.qrButton);
+        qrButton.setOnClickListener(this);
+        ImageButton galleryButton = (ImageButton) findViewById(R.id.galleryButton);
+        galleryButton.setOnClickListener(this);
     }
+
 
 
     @Override
@@ -84,96 +72,41 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
-
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        switch(id){
+            case R.id.fabcam:
+                LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+                Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                if(location==null){
+                    Toast.makeText(this, "Waiting for GPS signal...", Toast.LENGTH_SHORT).show();
+                }else {
+                    Intent intent = new Intent(this, CameraActivity.class);
+                    startActivity(intent);
+                    Log.d("MaicamDebug", "Camera Activity started");
+                }
+                break;
+            case R.id.locationButton:
+                Fragment f = new LocationFragment();
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                ft.replace(R.id.main_fragment_container, f);
+                ft.commit();
+                break;
+            case R.id.galleryButton:
+                Fragment f1 = new GalleryFragment();
+                FragmentTransaction ft1 = getSupportFragmentManager().beginTransaction();
+                ft1.replace(R.id.main_fragment_container, f1);
+                ft1.commit();
+                break;
+            case R.id.qrButton:
+                Fragment f2 = new QRFragment();
+                FragmentTransaction ft2 = getSupportFragmentManager().beginTransaction();
+                ft2.replace(R.id.main_fragment_container, f2);
+                ft2.commit();
+                break;
+            default: break;
         }
 
-        @Override
-        public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            // == return PlaceholderFragment.newInstance(position + 1);
-
-            switch(position){
-                case 0:
-                    return new GalleryFragment();
-                case 1:
-                    return new Fragment();//CameraFragment();
-                case 2:
-                    return new AccountFragment();
-            }
-            return null;
-
-        }
-
-        @Override
-        public int getCount() {
-            // Show 3 total pages.
-            return 3;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            Locale l = Locale.getDefault();
-            switch (position) {
-                case 0:
-                    return getString(R.string.title_section1).toUpperCase(l);
-                case 1:
-                    return getString(R.string.title_section2).toUpperCase(l);
-                case 2:
-                    return getString(R.string.title_section3).toUpperCase(l);
-            }
-            return null;
-        }
     }
-
-    /**
-     * This was replaced by the 3 class fragments
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
-            //added text to each page
-            TextView txt = (TextView) rootView.findViewById(R.id.section_label);
-            int page = getArguments().getInt(ARG_SECTION_NUMBER, -1);
-            txt.setText(String.format("Page %d", page));
-
-
-            return rootView;
-        }
-    }
-
-
-
 }
