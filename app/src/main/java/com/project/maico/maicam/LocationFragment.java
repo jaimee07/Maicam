@@ -28,6 +28,9 @@ public class LocationFragment extends Fragment {
     private static final long LOCATION_MINTIME = 2000;
     private static final float LOCATION_MINDISTANCE = 10;
 
+    private LocationListener locationListener;
+
+    /*
     private final LocationListener locationListener = new LocationListener(){
 
         @Override
@@ -53,7 +56,7 @@ public class LocationFragment extends Fragment {
 
         }
     };
-
+    */
 
     public LocationFragment() {
         // Required empty public constructor
@@ -99,6 +102,34 @@ public class LocationFragment extends Fragment {
         super.onAttach(activity);
         ImageButton imageButton = (ImageButton) getActivity().findViewById(R.id.locationButton);
         imageButton.setImageResource(R.drawable.ic_location_active);
+
+        locationListener = new LocationListener(){
+
+            @Override
+            public void onLocationChanged(Location location) {
+                Toast.makeText(getActivity(), "Location changed", Toast.LENGTH_SHORT).show();
+                mLatitudeValue.setText(Utility.convertToDMS(location.getLatitude()));
+                mLongitudeValue.setText(Utility.convertToDMS(location.getLongitude()));
+                mLocationName.setText("google kung pano kunin location name given the coordinates");
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
+
+
     }
 
     @Override

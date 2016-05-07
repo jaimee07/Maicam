@@ -79,8 +79,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.fabcam:
                 LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
                 Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                if(location==null){
-                    Toast.makeText(this, "Waiting for GPS signal...", Toast.LENGTH_SHORT).show();
+//                if(location==null){
+//                    Toast.makeText(this, "Waiting for GPS signal...", Toast.LENGTH_SHORT).show();
+                /*}else */if(QRFragment.bitmapQRCode==null){
+                    Toast.makeText(this, "Waiting for QR Code image, see the QR Code Tab", Toast.LENGTH_SHORT).show();
                 }else {
                     Intent intent = new Intent(this, CameraActivity.class);
                     startActivity(intent);

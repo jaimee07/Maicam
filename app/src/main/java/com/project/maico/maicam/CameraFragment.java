@@ -7,7 +7,6 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
 import android.location.Location;
@@ -26,6 +25,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,6 +44,7 @@ public class CameraFragment extends Fragment {
     private static Camera mCamera;
     private static SurfaceHolder mHolder;
     private static CameraPreview mPreview;
+    private static Canvas mCanvas;
 
     private static final int MEDIA_TYPE_IMAGE = 1;
     private static final int MEDIA_TYPE_VIDEO = 2;
@@ -68,6 +69,7 @@ public class CameraFragment extends Fragment {
     protected TextView mAltitudeText;
     protected TextView mDateText;
     protected TextView mTimeText;
+    protected ImageView mQRCode;
 
     //Location listener
     private static final long LOCATION_MINTIME = 2000;
@@ -131,10 +133,15 @@ public class CameraFragment extends Fragment {
         mAltitudeText = (TextView) view.findViewById(R.id.altitudeText);
         mDateText= (TextView) view.findViewById(R.id.dateText);
         mTimeText = (TextView) view.findViewById(R.id.timeText);
+        //QRCode image
+        mQRCode = (ImageView) view.findViewById(R.id.qrcodeImage);
 
         //initialize Camera Overlay
+        mQRCode.setImageBitmap(QRFragment.bitmapQRCode);
         mDateText.setText(String.format(new SimpleDateFormat("MM/dd/yyyy").format(new Date())));
         mTimeText.setText(String.format(new SimpleDateFormat("h:mm aa").format(new Date())));
+
+
 
         //Setup location manager
         LocationManager lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
@@ -362,71 +369,67 @@ public class CameraFragment extends Fragment {
     private Camera.PictureCallback mPicture = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-
+            //getActivity().setL setLayerType(View.LAYER_TYPE_SOFTWARE, null);
             //Create bitmap from byte[] data
             Bitmap bitmapRaw = BitmapFactory.decodeByteArray(data, 0, data.length);
-            //Bitmap bitmapLayout = Bitmap.createBitmap(preview.getDrawingCache(),0,0, bitmapRaw.getWidth(), bitmapRaw.getHeight());
-            //preview.destroyDrawingcache
-
-            //bitmapLayout scaled
+            //overlay bitmap
             Bitmap bitmapLayout = Bitmap.createScaledBitmap(sensorLayout.getDrawingCache(), bitmapRaw.getWidth(), bitmapRaw.getHeight(), true);
 
-            Bitmap bitmap =  Bitmap.createBitmap(bitmapRaw.getWidth(), bitmapRaw.getHeight(),
-                    bitmapRaw.getConfig());
-            Canvas mCanvas = new Canvas(bitmap);
-            mCanvas.drawBitmap(bitmapRaw,0,0,new Paint());
-            mCanvas.drawBitmap(bitmapLayout,0,0,new Paint());
+            if(bitmapRaw==null){
+                Log.d("bitmap error", "null bitmapRaw");
+            }else{
+                Log.d("bitmap error", "not null bitmapRaw");
+            }
 
-            File pictureFile =  getOutputMediaFile(MEDIA_TYPE_IMAGE);
-            if(pictureFile == null){
+            //drawingBitmap
+            //Bitmap drawingBitmap = Bitmap.createBitmap(bitmapRaw);
+            //Bitmap drawingBitmap = Bitmap.createBitmap(bitmapRaw.getWidth(), bitmapRaw.getHeight(),Bitmap.Config.ARGB_8888 );
+            Bitmap drawingBitmap = bitmapRaw.copy(Bitmap.Config.ARGB_8888, true);
+
+            //bitmapRaw.recycle();
+
+            if(drawingBitmap==null){
+                Log.d("bitmap error", "null drawingBitmap");
+            }else{
+                Log.d("bitmap error", "not null drawingBitmap");
+            }
+
+            mCanvas = new Canvas(drawingBitmap);
+            mCanvas.drawBitmap(bitmapLayout, 0, 0, null);
+
+
+            File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
+            if (pictureFile == null) {
                 Log.d(LOG_TAG, "Error creating media file");
                 return;
             }
-            try{
-//                ExifInterface exif = new ExifInterface(pictureFile.getAbsolutePath());
-//
-//                String latLetter = (currentLocation.getLatitude() > 0) ? "N" : "S";
-//                String lonLetter = (currentLocation.getLongitude() > 0) ? "E" : "W";
-//
-//                //set latitude
-//                exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE,
-//                        Utility.gpsExif(currentLocation.getLatitude()));
-//                exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF,latLetter);
-//                //set longitude
-//                exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE,
-//                        Utility.gpsExif(currentLocation.getLongitude()));
-//                exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF,lonLetter);
-//
-//                //save changes in exif
-//                exif.saveAttributes();
-
+            try {
                 FileOutputStream fos = new FileOutputStream(pictureFile);
                 //drawing of image into file
-                bitmap.compress(DEFAULT_COMPRESS_FORMAT, DEFAULT_COMPRESS_QUALITY, fos);
+//                bitmapRaw.compress(DEFAULT_COMPRESS_FORMAT, DEFAULT_COMPRESS_QUALITY, fos);
+                drawingBitmap.compress(DEFAULT_COMPRESS_FORMAT, DEFAULT_COMPRESS_QUALITY, fos);
 //                fos.write(data);
-
                 fos.close();
-                ExifInterface exif = new ExifInterface(pictureFile.getAbsolutePath());
 
 
 
-                String latLetter = (currentLocation.getLatitude() > 0) ? "N" : "S";
-                String lonLetter = (currentLocation.getLongitude() > 0) ? "E" : "W";
-
-                //set latitude
-                exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE,
-                        Utility.gpsExif(currentLocation.getLatitude()));
-                exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF,latLetter);
-                //set longitude
-                exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE,
-                        Utility.gpsExif(currentLocation.getLongitude()));
-                exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF,lonLetter);
-                //set altitude
-                exif.setAttribute(ExifInterface.TAG_GPS_ALTITUDE, "100");
-
-                //save changes in exif
-                exif.saveAttributes();
-
+            //exif data: location not set
+            ExifInterface exif = new ExifInterface(pictureFile.getAbsolutePath());
+            String latLetter = (currentLocation.getLatitude() > 0) ? "N" : "S";
+            String lonLetter = (currentLocation.getLongitude() > 0) ? "E" : "W";
+            //set latitude
+            exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE,
+                    Utility.gpsExif(currentLocation.getLatitude()));
+            exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF,latLetter);
+            //set longitude
+            exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE,
+                    Utility.gpsExif(currentLocation.getLongitude()));
+            exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF,lonLetter);
+            //set altitude
+            // TODO: 5/8/2016  change to altitude
+            exif.setAttribute(ExifInterface.TAG_GPS_ALTITUDE, "100");
+            //save changes in exif
+            exif.saveAttributes();
 
             } catch (FileNotFoundException e) {
                 Log.d(LOG_TAG, "File not found: " + e.getMessage());
@@ -435,8 +438,8 @@ public class CameraFragment extends Fragment {
             }
             Toast.makeText(getActivity(), "Picture Saved : " + pictureFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
             refreshCamera();
-        }
 
+        }
     };
 
     @Override
