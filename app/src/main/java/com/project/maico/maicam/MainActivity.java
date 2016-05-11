@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -66,11 +67,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        }else if(id == R.id.action_map){
+            openLocation();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    private void openLocation(){
+        //Fragment locationFragment = (LocationFragment) getSupportFragmentManager().findFragmentByTag("locationFragmentTag");
+
+        //Setup location manager
+        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if(location==null){
+            Toast.makeText(this,"No location detected",Toast.LENGTH_LONG).show();
+            return;
+        }else{
+            //use lat and longitude
+            String lat = String.valueOf(location.getLatitude()); //"14.655044"; //latitude
+            String longi = String.valueOf(location.getLongitude()); //"120.977299"; //longitude
+            Uri geoLocation = Uri.parse("geo:" + lat + "," + longi);
+
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(geoLocation);
+
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivity(intent);
+            } else {
+                Log.d(LOG_TAG, "Couldn't call location, no receiving apps installed!");
+            }
+        }
+    }
 
     @Override
     public void onClick(View v) {
@@ -92,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.locationButton:
                 Fragment f = new LocationFragment();
                 FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                ft.replace(R.id.main_fragment_container, f);
+                ft.replace(R.id.main_fragment_container, f, "locationFragmentTag");
                 ft.commit();
                 break;
             case R.id.galleryButton:

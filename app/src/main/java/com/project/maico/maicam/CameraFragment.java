@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -18,6 +19,7 @@ import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.OrientationEventListener;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -71,11 +73,15 @@ public class CameraFragment extends Fragment {
     protected TextView mTimeText;
     protected ImageView mQRCode;
 
+    //flash setting
+    private Boolean hasFlash;
+    private Boolean flashToggle = false;
+
     //Location listener
     private static final long LOCATION_MINTIME = 2000;
     private static final float LOCATION_MINDISTANCE = 10;
 
-    Location currentLocation;
+    protected Location currentLocation;
     private static double longitude;
     private static double latitude;
     private static double altitude;
@@ -87,10 +93,10 @@ public class CameraFragment extends Fragment {
             Toast.makeText(getActivity(), "Location changed", Toast.LENGTH_SHORT).show();
             //update current location
             currentLocation = location;
-            //mLatitudeLongitudeText.setText(String.format("%f, %f", location.getLatitude(), location.getLongitude()));
+            mLatitudeLongitudeText.setText(String.format("%f, %f", location.getLatitude(), location.getLongitude()));
             mAltitudeText.setText(String.format("Altitude: %f m", location.getAltitude()));
 
-            mLatitudeLongitudeText.setText(Utility.convertToDMS(location.getLatitude(), location.getLongitude()));
+            //mLatitudeLongitudeText.setText(Utility.convertToDMS(location.getLatitude(), location.getLongitude()));
 
         }
 
@@ -128,6 +134,38 @@ public class CameraFragment extends Fragment {
         FrameLayout preview = (FrameLayout) view.findViewById(R.id.camera_preview);
         preview.addView(mPreview);
 
+
+        //flash setting
+        Button flashButton = (Button) view.findViewById(R.id.flashButton);
+        hasFlash = getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+        if(!hasFlash){
+            flashButton.setClickable(false);
+        }else{
+            flashButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(!flashToggle){
+                        //turn on flash
+                        if(mCamera == null) {
+                            return;
+                        }
+                        Camera.Parameters param = mCamera.getParameters();
+                        param.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
+                        mCamera.setParameters(param);
+                        mCamera.startPreview();
+                        flashToggle = true;
+                    }else{
+                        //turn off flash
+                        Camera.Parameters param = mCamera.getParameters();
+                        param.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                        mCamera.setParameters(param);
+                        mCamera.startPreview();
+                        flashToggle = false;
+                    }
+                }
+            });
+        }
+
         //Camera Overlay TextViews
         mLatitudeLongitudeText = (TextView) view.findViewById((R.id.latitudeLongitudeText));
         mAltitudeText = (TextView) view.findViewById(R.id.altitudeText);
@@ -148,8 +186,8 @@ public class CameraFragment extends Fragment {
         Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         if(location!=null){
             currentLocation = location;
-            Log.d(LOG_TAG, ""+location.getLatitude());
-            mLatitudeLongitudeText.setText(Utility.convertToDMS(location.getLatitude(), location.getLongitude()));
+            mLatitudeLongitudeText.setText(String.format("%f, %f", location.getLatitude(), location.getLongitude()));
+            //mLatitudeLongitudeText.setText(Utility.convertToDMS(location.getLatitude(), location.getLongitude()));
             mAltitudeText.setText(String.format("Altitude: %.2f", location.getAltitude()));
         }else{
             Toast.makeText(getActivity(),"No location detected. Make sure location is enabled on the device.",Toast.LENGTH_LONG).show();
@@ -183,7 +221,18 @@ public class CameraFragment extends Fragment {
                 sensorLayout.buildDrawingCache();
 
                 //get image from camera
-                mCamera.takePicture(null, null, mPicture);
+
+//                mCamera.autoFocus(new Camera.AutoFocusCallback(){
+//
+//                    @Override
+//                    public void onAutoFocus(boolean success, Camera camera) {
+//                        if(success){
+//                            mCamera.takePicture(mShutterCallback, null, mPictureCallback);
+//                        }
+//                    }
+//                });
+
+                mCamera.takePicture(mShutterCallback, null, mPictureCallback);
             }
         });
 
@@ -291,6 +340,10 @@ public class CameraFragment extends Fragment {
             super(context);
             mCamera = camera;
 
+            //autofocus
+            setFocusable(true);
+            setFocusableInTouchMode(true);
+
             //install a SurfaceHolder.Callback so we get notified
             //when the underlying surface is created and destroyed
             mHolder = getHolder();
@@ -335,13 +388,15 @@ public class CameraFragment extends Fragment {
             //start preview with new settings
             try{
                 //setCameraDisplayOrientation(getActivity(),0,mCamera);
-                if(mCamera == null){
+                if (mCamera == null){
                     mCamera = getCameraInstance();
                 }
 
                 mCamera.setDisplayOrientation(PORTRAIT_90);
                 mCamera.setPreviewDisplay(mHolder);
                 mCamera.startPreview();
+
+//                mCamera.autoFocus(null);
             } catch (IOException e) {
                 Log.d(LOG_TAG, "Error starting camera preview: "
                         + e.getMessage());
@@ -355,7 +410,38 @@ public class CameraFragment extends Fragment {
             //empty, release camera preview in your activity
             releaseCamera();
         }
+
+
+
+        @Override
+        public boolean onTouchEvent(MotionEvent event) {
+            if(flashToggle) {
+                Camera.Parameters param = mCamera.getParameters();
+                param.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                mCamera.setParameters(param);
+                mCamera.startPreview();
+                mCamera.autoFocus(null);
+
+                Camera.Parameters param1 = mCamera.getParameters();
+                param1.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
+                mCamera.setParameters(param1);
+                mCamera.startPreview();
+
+            }else{
+                mCamera.autoFocus(null);
+            }
+            return false;
+//            return super.onTouchEvent(event);
+        }
     }
+
+
+
+    private Camera.ShutterCallback mShutterCallback = new Camera.ShutterCallback() {
+        public void onShutter() {
+            //default sound
+        }
+    };
 
 
     /**
@@ -366,7 +452,7 @@ public class CameraFragment extends Fragment {
      * Setup listeners for Capture
      */
     // TODO: 11/24/2015 Create asyncTask to process file saving
-    private Camera.PictureCallback mPicture = new Camera.PictureCallback() {
+    private Camera.PictureCallback mPictureCallback = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
             //getActivity().setL setLayerType(View.LAYER_TYPE_SOFTWARE, null);
@@ -427,7 +513,7 @@ public class CameraFragment extends Fragment {
             exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF,lonLetter);
             //set altitude
             // TODO: 5/8/2016  change to altitude
-            exif.setAttribute(ExifInterface.TAG_GPS_ALTITUDE, "100");
+            exif.setAttribute(ExifInterface.TAG_GPS_ALTITUDE, String.format("%f", currentLocation.getAltitude()));
             //save changes in exif
             exif.saveAttributes();
 
