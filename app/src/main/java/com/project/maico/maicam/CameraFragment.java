@@ -445,44 +445,23 @@ public class CameraFragment extends Fragment {
 
 
     /**
-     * Build a preview layout in xml
-     */
-
-    /**
      * Setup listeners for Capture
      */
-    // TODO: 11/24/2015 Create asyncTask to process file saving
+
     private Camera.PictureCallback mPictureCallback = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-            //getActivity().setL setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-            //Create bitmap from byte[] data
-            Bitmap bitmapRaw = BitmapFactory.decodeByteArray(data, 0, data.length);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inMutable = true;
+            Bitmap bitmapRaw = BitmapFactory.decodeByteArray(data, 0, data.length, options);
+
             //overlay bitmap
             Bitmap bitmapLayout = Bitmap.createScaledBitmap(sensorLayout.getDrawingCache(), bitmapRaw.getWidth(), bitmapRaw.getHeight(), true);
 
-            if(bitmapRaw==null){
-                Log.d("bitmap error", "null bitmapRaw");
-            }else{
-                Log.d("bitmap error", "not null bitmapRaw");
-            }
-
-            //drawingBitmap
-            //Bitmap drawingBitmap = Bitmap.createBitmap(bitmapRaw);
-            //Bitmap drawingBitmap = Bitmap.createBitmap(bitmapRaw.getWidth(), bitmapRaw.getHeight(),Bitmap.Config.ARGB_8888 );
-            Bitmap drawingBitmap = bitmapRaw.copy(Bitmap.Config.ARGB_8888, true);
-
-            //bitmapRaw.recycle();
-
-            if(drawingBitmap==null){
-                Log.d("bitmap error", "null drawingBitmap");
-            }else{
-                Log.d("bitmap error", "not null drawingBitmap");
-            }
-
-            mCanvas = new Canvas(drawingBitmap);
+            mCanvas = new Canvas(bitmapRaw);
             mCanvas.drawBitmap(bitmapLayout, 0, 0, null);
 
+            bitmapLayout.recycle();
 
             File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
             if (pictureFile == null) {
@@ -492,30 +471,30 @@ public class CameraFragment extends Fragment {
             try {
                 FileOutputStream fos = new FileOutputStream(pictureFile);
                 //drawing of image into file
-//                bitmapRaw.compress(DEFAULT_COMPRESS_FORMAT, DEFAULT_COMPRESS_QUALITY, fos);
-                drawingBitmap.compress(DEFAULT_COMPRESS_FORMAT, DEFAULT_COMPRESS_QUALITY, fos);
-//                fos.write(data);
+                bitmapRaw.compress(DEFAULT_COMPRESS_FORMAT, DEFAULT_COMPRESS_QUALITY, fos);
                 fos.close();
 
+                bitmapRaw.recycle();
 
-
-            //exif data: location not set
-            ExifInterface exif = new ExifInterface(pictureFile.getAbsolutePath());
-            String latLetter = (currentLocation.getLatitude() > 0) ? "N" : "S";
-            String lonLetter = (currentLocation.getLongitude() > 0) ? "E" : "W";
-            //set latitude
-            exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE,
-                    Utility.gpsExif(currentLocation.getLatitude()));
-            exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF,latLetter);
-            //set longitude
-            exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE,
-                    Utility.gpsExif(currentLocation.getLongitude()));
-            exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF,lonLetter);
-            //set altitude
-            // TODO: 5/8/2016  change to altitude
-            exif.setAttribute(ExifInterface.TAG_GPS_ALTITUDE, String.format("%f", currentLocation.getAltitude()));
-            //save changes in exif
-            exif.saveAttributes();
+                if(currentLocation !=null) {
+                    //exif data: location not set
+                    ExifInterface exif = new ExifInterface(pictureFile.getAbsolutePath());
+                    String latLetter = (currentLocation.getLatitude() > 0) ? "N" : "S";
+                    String lonLetter = (currentLocation.getLongitude() > 0) ? "E" : "W";
+                    //set latitude
+                    exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE,
+                            Utility.gpsExif(currentLocation.getLatitude()));
+                    exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, latLetter);
+                    //set longitude
+                    exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE,
+                            Utility.gpsExif(currentLocation.getLongitude()));
+                    exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, lonLetter);
+                    //set altitude
+                    // TODO: 5/8/2016  change to altitude
+                    exif.setAttribute(ExifInterface.TAG_GPS_ALTITUDE, String.format("%f", currentLocation.getAltitude()));
+                    //save changes in exif
+                    exif.saveAttributes();
+                }
 
             } catch (FileNotFoundException e) {
                 Log.d(LOG_TAG, "File not found: " + e.getMessage());
@@ -523,6 +502,7 @@ public class CameraFragment extends Fragment {
                 Log.d(LOG_TAG, "Error accessing file: " + e.getMessage());
             }
             Toast.makeText(getActivity(), "Picture Saved : " + pictureFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
+
             refreshCamera();
 
         }
