@@ -28,6 +28,7 @@ import java.io.File;
 
 public class GalleryFragment extends Fragment implements AdapterView.OnItemClickListener{
     private static String LOG_TAG = GalleryFragment.class.getSimpleName();
+    private static Activity myContext;
 
     private ImageAdapter mAdapter;
     private ImageLoader mImageLoader;
@@ -63,9 +64,9 @@ public class GalleryFragment extends Fragment implements AdapterView.OnItemClick
         final View v = inflater.inflate(R.layout.fragment_gallery, container, false);
         final GridView gridView = (GridView) v.findViewById(R.id.gridView);
 
-        files = ImageUtil.getFilesFromMaicam(getActivity());
+        files = ImageUtil.getFilesFromMaicam(myContext);
 
-        mAdapter = new ImageAdapter(getActivity());
+        mAdapter = new ImageAdapter(myContext);
         gridView.setAdapter(mAdapter);
         gridView.setOnItemClickListener(this);
 
@@ -102,14 +103,14 @@ public class GalleryFragment extends Fragment implements AdapterView.OnItemClick
                     }
                 });
 
-        mImageLoader= new ImageLoader(getActivity(), mImageThumbSize, mImageThumbSize, CACHE_PERCENTAGE, DISK_CACHE_SUBDIR, mPlaceholderImage );
+        mImageLoader= new ImageLoader(myContext, mImageThumbSize, mImageThumbSize, CACHE_PERCENTAGE, DISK_CACHE_SUBDIR, mPlaceholderImage );
 
         return v;
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        final Intent intent = new Intent(getActivity(), DetailActivity.class);
+        final Intent intent = new Intent(myContext, DetailActivity.class);
         intent.putExtra (com.project.maico.maicam.DetailFragment.IMAGE_DATA_EXTRA, (int) id);
 
         //TODO: make scale up animation
@@ -189,13 +190,14 @@ public class GalleryFragment extends Fragment implements AdapterView.OnItemClick
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        ImageButton imageButton = (ImageButton) getActivity().findViewById(R.id.galleryButton);
+        myContext = activity;
+        ImageButton imageButton = (ImageButton) myContext.findViewById(R.id.galleryButton);
         imageButton.setImageResource(R.drawable.ic_gallery_active);
     }
 
     @Override
     public void onDetach() {
-        ImageButton imageButton = (ImageButton) getActivity().findViewById(R.id.galleryButton);
+        ImageButton imageButton = (ImageButton) myContext.findViewById(R.id.galleryButton);
         imageButton.setImageResource(R.drawable.ic_gallery);
         super.onDetach();
     }

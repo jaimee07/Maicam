@@ -1,5 +1,6 @@
 package com.project.maico.maicam;
 
+import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -17,6 +18,7 @@ import com.project.maico.maicam.GalleryUtil.ImageLoader;
 public class DetailFragment extends Fragment {
 
     private static final String LOG_TAG = DetailFragment.class.getSimpleName();
+    private static Activity myContext;
 
     private ImageLoader mImageLoader;
     private ImageView mImageView;
@@ -46,6 +48,12 @@ public class DetailFragment extends Fragment {
      */
     public DetailFragment() {
 
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        myContext = activity;
     }
 
     /**
@@ -91,14 +99,14 @@ public class DetailFragment extends Fragment {
         //Use the parent activity to load the image asynchronously into the ImageView
         //so a single cache can be used over all pages in the ViewPager
 
-        if(DetailActivity.class.isInstance(getActivity())){
-            mImageLoader = ((DetailActivity)getActivity()).getImageLoader();
+        if(DetailActivity.class.isInstance(myContext)){
+            mImageLoader = ((DetailActivity)myContext).getImageLoader();
             mImageLoader.loadBitmap(mFileName, mImageView);
         }
 
         // Pass clicks on the ImageView to the parent activity to handle
-        if(View.OnClickListener.class.isInstance(getActivity())&& Build.VERSION.SDK_INT>= Build.VERSION_CODES.HONEYCOMB) {
-            mImageView.setOnClickListener((View.OnClickListener)getActivity());
+        if(View.OnClickListener.class.isInstance(myContext)&& Build.VERSION.SDK_INT>= Build.VERSION_CODES.HONEYCOMB) {
+            mImageView.setOnClickListener((View.OnClickListener)myContext);
         }
 
 

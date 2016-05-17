@@ -11,7 +11,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import com.project.maico.maicam.GalleryUtil.ImageLoader;
 import com.project.maico.maicam.GalleryUtil.ImageUtil;
@@ -105,12 +104,10 @@ public class DetailActivity extends AppCompatActivity implements View.OnClickLis
     public void onClick(View v) {
         final int vis = mPager.getSystemUiVisibility();
         if((vis & View.SYSTEM_UI_FLAG_LOW_PROFILE) != 0){
-            Toast.makeText(this, "visible actionbar", Toast.LENGTH_SHORT).show();
             mPager.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
             getSupportActionBar().show();
             Log.d(LOG_TAG, "flag visible");
         }else{
-            Toast.makeText(this, "hide actionbar", Toast.LENGTH_SHORT).show();
             mPager.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
             getSupportActionBar().hide();
             Log.d(LOG_TAG, "low profile");

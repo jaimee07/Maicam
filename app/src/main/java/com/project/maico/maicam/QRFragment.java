@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Point;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.Display;
@@ -12,9 +15,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
@@ -23,7 +26,37 @@ import com.project.maico.maicam.QRCode.QRCodeEncoder;
 
 public class QRFragment extends Fragment {
     private static final String LOG_TAG = QRFragment.class.getSimpleName();
+    private static Activity myContext;
     public static Bitmap bitmapQRCode;
+
+    //Location
+    public Location mLastLocation;
+    private static final long LOCATION_MINTIME = 2000;
+    private static final float LOCATION_MINDISTANCE = 10;
+
+    private final LocationListener locationListener = new LocationListener(){
+
+        @Override
+        public void onLocationChanged(Location location) {
+            mLastLocation = location;
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+    };
+
 
     public QRFragment() {
         // Required empty public constructor
@@ -40,19 +73,35 @@ public class QRFragment extends Fragment {
 
         final View view = inflater.inflate(R.layout.fragment_qr, container, false);
 
-        //add listener
+        //button
         Button button1 = (Button) view.findViewById(R.id.button1);
+
+        //Setup location manager
+        LocationManager lm = (LocationManager) myContext.getSystemService(Context.LOCATION_SERVICE);
+        mLastLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if(mLastLocation==null){
+            Toast.makeText(myContext, "No location detected. Make sure location is enabled on the device.", Toast.LENGTH_LONG).show();
+            button1.setClickable(false);
+            button1.setEnabled(false);
+        }
+        else{
+            button1.setClickable(true);
+            button1.setEnabled(true);
+        }
+        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_MINTIME, LOCATION_MINDISTANCE, locationListener);
+
+        //add listener
         button1.setOnClickListener(new View.OnClickListener(){
 
             @Override
             public void onClick(View v) {
-                EditText qrInputLat = (EditText) view.findViewById(R.id.qrInputLat);
-                EditText qrInputLong = (EditText) view.findViewById(R.id.qrInputLong);
-                Float latitudeFloat = Float.valueOf(qrInputLat.getText().toString());
-                Float longitudeFloat = Float.valueOf(qrInputLong.getText().toString());
+//                EditText qrInputLat = (EditText) view.findViewById(R.id.qrInputLat);
+//                EditText qrInputLong = (EditText) view.findViewById(R.id.qrInputLong);
+                Float latitudeFloat = (float) mLastLocation.getLatitude();
+                Float longitudeFloat =  (float) mLastLocation.getLongitude();
 
                 //Find screen size
-                WindowManager manager = ((WindowManager)getActivity().getSystemService(Context.WINDOW_SERVICE));
+                WindowManager manager = ((WindowManager)myContext.getSystemService(Context.WINDOW_SERVICE));
                 Display display = manager.getDefaultDisplay();
                 Point point = new Point();
                 display.getSize(point);
@@ -66,7 +115,7 @@ public class QRFragment extends Fragment {
                 bundle.putFloat("LONG", longitudeFloat);
 
 
-                QRCodeEncoder qrCodeEncoder = new QRCodeEncoder("Anoto",
+                QRCodeEncoder qrCodeEncoder = new QRCodeEncoder("Maicam",
                         bundle,
                         Contents.Type.LOCATION,
                         BarcodeFormat.QR_CODE.toString(),
@@ -102,13 +151,14 @@ public class QRFragment extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        ImageButton imageButton = (ImageButton) getActivity().findViewById(R.id.qrButton);
+        myContext = activity;
+        ImageButton imageButton = (ImageButton) myContext.findViewById(R.id.qrButton);
         imageButton.setImageResource(R.drawable.ic_qr_active);
     }
 
     @Override
     public void onDetach() {
-        ImageButton imageButton = (ImageButton) getActivity().findViewById(R.id.qrButton);
+        ImageButton imageButton = (ImageButton) myContext.findViewById(R.id.qrButton);
         imageButton.setImageResource(R.drawable.ic_qr);
         super.onDetach();
     }

@@ -1,5 +1,6 @@
 package com.project.maico.maicam;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -43,6 +44,7 @@ import java.util.Date;
 public class CameraFragment extends Fragment {
 
     private static final String LOG_TAG = CameraFragment.class.getSimpleName();
+    private static Activity myContext;
     private static Camera mCamera;
     private static SurfaceHolder mHolder;
     private static CameraPreview mPreview;
@@ -90,7 +92,7 @@ public class CameraFragment extends Fragment {
 
         @Override
         public void onLocationChanged(Location location) {
-            Toast.makeText(getActivity(), "Location changed", Toast.LENGTH_SHORT).show();
+            Toast.makeText(myContext, "Location changed", Toast.LENGTH_SHORT).show();
             //update current location
             currentLocation = location;
             mLatitudeLongitudeText.setText(String.format("%f, %f", location.getLatitude(), location.getLongitude()));
@@ -121,6 +123,12 @@ public class CameraFragment extends Fragment {
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        myContext = activity;
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -130,14 +138,14 @@ public class CameraFragment extends Fragment {
         mCamera = getCameraInstance();
 
         //Create preview view
-        mPreview = new CameraPreview(getActivity(), mCamera);
+        mPreview = new CameraPreview(myContext, mCamera);
         FrameLayout preview = (FrameLayout) view.findViewById(R.id.camera_preview);
         preview.addView(mPreview);
 
 
         //flash setting
         Button flashButton = (Button) view.findViewById(R.id.flashButton);
-        hasFlash = getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+        hasFlash = myContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
         if(!hasFlash){
             flashButton.setClickable(false);
         }else{
@@ -182,7 +190,7 @@ public class CameraFragment extends Fragment {
 
 
         //Setup location manager
-        LocationManager lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+        LocationManager lm = (LocationManager) myContext.getSystemService(Context.LOCATION_SERVICE);
         Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         if(location!=null){
             currentLocation = location;
@@ -190,7 +198,7 @@ public class CameraFragment extends Fragment {
             //mLatitudeLongitudeText.setText(Utility.convertToDMS(location.getLatitude(), location.getLongitude()));
             mAltitudeText.setText(String.format("Altitude: %.2f", location.getAltitude()));
         }else{
-            Toast.makeText(getActivity(),"No location detected. Make sure location is enabled on the device.",Toast.LENGTH_LONG).show();
+            Toast.makeText(myContext,"No location detected. Make sure location is enabled on the device.",Toast.LENGTH_LONG).show();
         }
         lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_MINTIME, LOCATION_MINDISTANCE, locationListener);
 
@@ -247,7 +255,7 @@ public class CameraFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         //Detect orientation via Sensor
-        mOrientationEventListener = new OrientationEventListener(getActivity(), SensorManager.SENSOR_DELAY_NORMAL) {
+        mOrientationEventListener = new OrientationEventListener(myContext, SensorManager.SENSOR_DELAY_NORMAL) {
             @Override
             public void onOrientationChanged(int orientation) {
                 String lastOrient = orient;
@@ -501,7 +509,7 @@ public class CameraFragment extends Fragment {
             } catch (IOException e) {
                 Log.d(LOG_TAG, "Error accessing file: " + e.getMessage());
             }
-            Toast.makeText(getActivity(), "Picture Saved : " + pictureFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
+            Toast.makeText(myContext, "Picture Saved : " + pictureFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
 
             refreshCamera();
 
@@ -517,7 +525,7 @@ public class CameraFragment extends Fragment {
 
         //unregister receiver
         try {
-            getActivity().unregisterReceiver(mDateChangeReceiver);
+            myContext.unregisterReceiver(mDateChangeReceiver);
         }catch(IllegalArgumentException e){
             if(e.getMessage().contains("Receiver not registered")){
                 //ignore this exception. This is a known bug and is exactly what is desired.
@@ -531,7 +539,7 @@ public class CameraFragment extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-        getActivity().registerReceiver(mDateChangeReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
+        myContext.registerReceiver(mDateChangeReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
 
     }
 

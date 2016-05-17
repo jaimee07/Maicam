@@ -23,6 +23,7 @@ import com.project.maico.maicam.MainUtil.FetchAddressIntentService;
 
 public class LocationFragment extends Fragment {
     private static final String LOG_TAG = LocationFragment.class.getSimpleName();
+    private static Activity myContext;
 
     private static TextView mLatitudeValue;
     private static TextView mLongitudeValue;
@@ -90,7 +91,7 @@ public class LocationFragment extends Fragment {
         mLocationName = (TextView) view.findViewById(R.id.locationName);
 
         //Setup location manager
-        LocationManager lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+        LocationManager lm = (LocationManager) myContext.getSystemService(Context.LOCATION_SERVICE);
         mLastLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         if(mLastLocation!=null){
             mLatitudeValue.setText(Utility.convertToDMS(mLastLocation.getLatitude()));
@@ -102,7 +103,7 @@ public class LocationFragment extends Fragment {
             }
 
         }else{
-            Toast.makeText(getActivity(),"No location detected. Make sure location is enabled on the device.",Toast.LENGTH_LONG).show();
+            Toast.makeText(myContext,"No location detected. Make sure location is enabled on the device.",Toast.LENGTH_LONG).show();
         }
         lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_MINTIME, LOCATION_MINDISTANCE, locationListener);
 
@@ -115,7 +116,8 @@ public class LocationFragment extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        ImageButton imageButton = (ImageButton) getActivity().findViewById(R.id.locationButton);
+        myContext = activity;
+        ImageButton imageButton = (ImageButton) myContext.findViewById(R.id.locationButton);
         imageButton.setImageResource(R.drawable.ic_location_active);
 
         locationListener = new LocationListener(){
@@ -124,7 +126,7 @@ public class LocationFragment extends Fragment {
             public void onLocationChanged(Location location) {
                 mLastLocation = location;
 
-                Toast.makeText(getActivity(), "Location changed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(myContext, "Location changed", Toast.LENGTH_SHORT).show();
                 mLatitudeValue.setText(Utility.convertToDMS(location.getLatitude()));
                 mLongitudeValue.setText(Utility.convertToDMS(location.getLongitude()));
                 //mLocationName.setText("google kung pano kunin location name given the coordinates");
@@ -156,16 +158,16 @@ public class LocationFragment extends Fragment {
 
     @Override
     public void onDetach() {
-        ImageButton imageButton = (ImageButton) getActivity().findViewById(R.id.locationButton);
+        ImageButton imageButton = (ImageButton) myContext.findViewById(R.id.locationButton);
         imageButton.setImageResource(R.drawable.ic_location);
         super.onDetach();
     }
 
     protected void startIntentService() {
-        Intent intent = new Intent(getActivity(), FetchAddressIntentService.class);
+        Intent intent = new Intent(myContext, FetchAddressIntentService.class);
         intent.putExtra(Constants.RECEIVER, mResultReceiver);
         intent.putExtra(Constants.LOCATION_DATA_EXTRA, mLastLocation);
-        getActivity().startService(intent);
+        myContext.startService(intent);
     }
 
     class AddressResultReceiver extends ResultReceiver {

@@ -235,6 +235,7 @@ public class ImageLoader {
                                     DEFAULT_COMPRESS_FORMAT, DEFAULT_COMPRESS_QUALITY, out);
                             editor.commit();
                             out.close();
+
                         }
                     } else {
                         snapshot.getInputStream(DISK_CACHE_INDEX).close();
