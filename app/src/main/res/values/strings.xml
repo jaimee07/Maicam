@@ -1,4 +1,10 @@
 <resources>
+    <!-- Gallery (google)-->
+    <string name="clear_cache_menu">Clear Caches</string>
+    <string name="clear_cache_complete_toast">Caches have been cleared</string>
+    <string name="imageview_description">Image Thumbnail</string>
+    <string name="no_network_connection_toast">No network connection found</string>
+
     <!--Camera Overlay -->
     <string name="latitudeLongitude">14*32\'6\"N, 121*2\'25\"E </string>
     <string name="altitude">Altitude: 262ft</string>
@@ -30,7 +36,6 @@
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_gallery_detail">GalleryDetail</string>
-    <string name="imageview_description">Image Thumbnail</string>
     <string name="title_activity_camera">CameraActivity</string>
 
     <!--Location xml -->

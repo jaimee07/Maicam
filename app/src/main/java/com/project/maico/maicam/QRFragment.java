@@ -81,8 +81,8 @@ public class QRFragment extends Fragment {
         mLastLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         if(mLastLocation==null){
             Toast.makeText(myContext, "No location detected. Make sure location is enabled on the device.", Toast.LENGTH_LONG).show();
-            button1.setClickable(false);
-            button1.setEnabled(false);
+//            button1.setClickable(false);
+//            button1.setEnabled(false);
         }
         else{
             button1.setClickable(true);
@@ -95,10 +95,11 @@ public class QRFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
-//                EditText qrInputLat = (EditText) view.findViewById(R.id.qrInputLat);
-//                EditText qrInputLong = (EditText) view.findViewById(R.id.qrInputLong);
-                Float latitudeFloat = (float) mLastLocation.getLatitude();
-                Float longitudeFloat =  (float) mLastLocation.getLongitude();
+//                Float latitudeFloat = (float) mLastLocation.getLatitude();
+//                Float longitudeFloat =  (float) mLastLocation.getLongitude();
+
+                Float latitudeFloat = (float) 1.0;
+                Float longitudeFloat =  (float) 2.0;
 
                 //Find screen size
                 WindowManager manager = ((WindowManager)myContext.getSystemService(Context.WINDOW_SERVICE));

@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
 
-        Fragment defaultFragment = new GalleryFragment();
+        Fragment defaultFragment = new LocationFragment();
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.add(R.id.main_fragment_container, defaultFragment);
         ft.commit();
@@ -125,10 +125,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ft.commit();
                 break;
             case R.id.galleryButton:
-                Fragment f1 = new GalleryFragment();
-                FragmentTransaction ft1 = getSupportFragmentManager().beginTransaction();
-                ft1.replace(R.id.main_fragment_container, f1);
-                ft1.commit();
+                Intent intent = new Intent(this, ImageGridActivity.class);
+                startActivity(intent);
+
+//                Fragment f1 = new GalleryFragment();
+//                FragmentTransaction ft1 = getSupportFragmentManager().beginTransaction();
+//                ft1.replace(R.id.main_fragment_container, f1);
+//                ft1.commit();
                 break;
             case R.id.qrButton:
                 Fragment f2 = new QRFragment();

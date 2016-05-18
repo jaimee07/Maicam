@@ -9,33 +9,33 @@
 
 
     <!-- example qr code generator layout -->
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Input geographical coordinates"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+    <!--<TextView-->
+        <!--android:id="@+id/textView1"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="Input geographical coordinates"-->
+        <!--android:textAppearance="?android:attr/textAppearanceMedium" />-->
 
-    <EditText
-        android:id="@+id/qrInputLat"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="Latitude"
-        android:inputType="numberDecimal">
-        <requestFocus />
+    <!--<EditText-->
+        <!--android:id="@+id/qrInputLat"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:ems="10"-->
+        <!--android:hint="Latitude"-->
+        <!--android:inputType="numberDecimal">-->
+        <!--<requestFocus />-->
 
-    </EditText>
+    <!--</EditText>-->
 
-    <EditText
-        android:id="@+id/qrInputLong"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="Longitude"
-        android:inputType="numberDecimal">
-        <requestFocus />
-    </EditText>
+    <!--<EditText-->
+        <!--android:id="@+id/qrInputLong"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:ems="10"-->
+        <!--android:hint="Longitude"-->
+        <!--android:inputType="numberDecimal">-->
+        <!--<requestFocus />-->
+    <!--</EditText>-->
 
     <Button
         android:id="@+id/button1"
